@@ -155,6 +155,10 @@
   </section>
 
   <section class="panel" id="polls">
+    <div class="card"><h2>Comment Wall</h2><h3>Ideas, song requests, anything for the group</h3>
+      <div style="display:flex;gap:6px;margin-bottom:12px"><input id="wall_input" placeholder="Write something for the group" style="flex:1"><button class="btn sm" onclick="postWall('wall_input')">Post</button></div>
+      <div id="wallList"></div>
+    </div>
     <div class="card"><h2>Polls</h2><h3>Group decisions — tap to vote</h3><div id="pollList"></div>
       <details id="newPollWrap"><summary>+ New poll</summary>
         <label>Question</label><input id="np_title" type="text">
@@ -165,10 +169,6 @@
         <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="np_showvoters" style="width:auto"> Show who voted for each option</label>
         <div style="margin-top:10px"><button class="btn sm" id="np_save">Create poll</button></div>
       </details>
-    </div>
-    <div class="card"><h2>Comment Wall</h2><h3>Ideas, song requests, anything for the group</h3>
-      <div style="display:flex;gap:6px;margin-bottom:12px"><input id="wall_input" placeholder="Write something for the group" style="flex:1"><button class="btn sm" onclick="postWall('wall_input')">Post</button></div>
-      <div id="wallList"></div>
     </div>
     <div class="card"><h2>Sign-ups</h2><h3>Pick your options</h3><div id="signupList"></div>
       <details id="newSignupWrap"><summary>+ New sign-up</summary>
@@ -239,7 +239,7 @@ const SCHEDULE = [
 ];
 
 const STAGED_ROLLOUT = true;          // set to false to reveal all tabs to everyone
-const MEMBER_TABS = ['home','rsvp'];  // tabs non-organizers see during staged rollout
+const MEMBER_TABS = ['home','rsvp','polls'];  // tabs non-organizers see during staged rollout
 let state = { me:null, people:[] };
 const $ = s => document.querySelector(s);
 const showErr = m => { const e=$('#err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',6000); };
