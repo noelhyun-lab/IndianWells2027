@@ -89,9 +89,9 @@
 
 <!-- Sign-in gate -->
 <div class="gate" id="gate">
-  <div class="card">
-    <h2>Welcome 🎾</h2>
-    <p class="muted">This hub is for our Indian Wells crew. Sign in with the Google account tied to your invite to RSVP, vote, sign up, and track shared costs.</p>
+  <div class="card" style="padding:14px">
+    <p class="muted" style="margin:0 0 12px">Sign in above with the Google account (or email link) tied to your invite to RSVP, vote, sign up, and track shared costs.</p>
+    <img src="flyer.jpg" alt="Indian Wells 2027 — Round Two" style="width:100%;border-radius:12px;display:block">
   </div>
 </div>
 
@@ -99,6 +99,7 @@
 <div id="app" class="hide">
 <nav id="nav">
   <button class="active" data-t="home">Home</button>
+  <button data-t="rsvp">RSVP</button>
   <button data-t="roster">Roster</button>
   <button data-t="schedule">Schedule &amp; Roles</button>
   <button data-t="polls">Polls &amp; Sign-ups</button>
@@ -107,8 +108,13 @@
 </nav>
 <main>
   <section class="panel active" id="home">
+    <img src="flyer.jpg" alt="Indian Wells 2027 — Round Two" style="width:100%;max-width:520px;border-radius:16px;box-shadow:var(--shadow);display:block;margin:0 auto 16px">
     <div class="card"><h2>Hi <span id="hiName"></span> 👋</h2>
-      <p class="muted">Two villas (4 bedrooms each), one day + one night session, a private chef night, a spa morning, and pool time in between. Indian Wells is an easy drive — no flights needed, we'll sort carpools. Update your RSVP below, then check the polls and sign-ups.</p></div>
+      <p class="muted">Two villas (4 bedrooms each), one day + one night session, a private chef night, a spa morning, and pool time in between. Indian Wells is an easy drive — no flights needed, we'll sort carpools. Head to <b>RSVP</b> to confirm, then check the polls and sign-ups.</p></div>
+    <div class="card"><h2>At a glance</h2><div id="glance"></div></div>
+  </section>
+
+  <section class="panel" id="rsvp">
     <div class="card">
       <h2>Your RSVP</h2><h3 id="rsvpRole"></h3>
       <div class="grid2">
@@ -124,7 +130,6 @@
       <label>Anything else (rooming, carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
       <div style="margin-top:12px"><button class="btn" id="saveRsvp">Save my RSVP</button> <span id="rsvpMsg" class="muted"></span></div>
     </div>
-    <div class="card"><h2>At a glance</h2><div id="glance"></div></div>
   </section>
 
   <section class="panel" id="roster"><div class="card"><h2>The Crew</h2><h3>13 invited · RSVP status</h3>
@@ -208,7 +213,7 @@ const ROLE_GROUPS = [
 const SCHEDULE = [
   ["Wed · Mar 3","Arrivals",["Check into the two villas, settle in","Welcome dinner / poolside drinks"],false],
   ["Thu · Mar 4","Pool & Spa + Optional Tennis",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Optional: morning massages at the villa","Casual dinner in"],false],
-  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Group day session","★ Private chef dinner at the villa (after the session)"],true],
+  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session","★ Private chef dinner at the villa (after the session)"],true],
   ["Sat · Mar 6","Relaxed Day + Night Session",["Relaxed day / pool","★ Night session (gates 4:30, ~6pm)"],true],
   ["Sun · Mar 7","Sunday Brunch + Gift Bags",["Optional: Sunday-morning massages at the villa","★ Group Sunday brunch (~12:30–1pm)","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
   ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
@@ -257,7 +262,7 @@ supa.auth.onAuthStateChange((_e, s)=>{ if(s && $('#app').classList.contains('hid
 async function loadAll(){
   const [{data:people},{data:polls},{data:signups},{data:expenses},{data:vault}] = await Promise.all([
     supa.from('people').select('*').order('full_name'),
-    supa.from('polls').select('*, poll_options(*), poll_votes(*)').order('created_at'),
+    supa.from('polls').select('*, poll_options(*), poll_votes(*), poll_comments(*)').order('created_at'),
     supa.from('signups').select('*, signup_options(*), signup_choices(*)').order('created_at'),
     supa.from('expenses').select('*, expense_shares(*)').order('created_at'),
     supa.from('vault_items').select('*').order('sort'),
@@ -335,14 +340,26 @@ function renderPolls(polls){
     const mine=votes.filter(v=>v.voter===state.me.id).map(v=>v.option_id);
     const dead=p.deadline?` · by ${new Date(p.deadline).toLocaleDateString()}`:'';
     const closed=p.status!=='open';
-    return `<div style="margin-bottom:16px"><b>${esc(p.title)}</b> <span class="tag">${esc(areaLabel(p.area))}${dead}${closed?' · closed':''}</span>`+
+    const comments=(p.poll_comments||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    const cList = comments.map(c=>`<div class="muted" style="padding:3px 0"><b>${esc(nameOf(c.author))}</b>: ${esc(c.body)}${(c.author===state.me.id||state.me.is_organizer)?` <a style="cursor:pointer;color:#a23b3b" onclick="delComment('${c.id}')">×</a>`:''}</div>`).join('') || '<span class="muted">No comments yet.</span>';
+    const cBlock = `<details style="margin-top:8px"><summary>💬 Comments (${comments.length})</summary><div style="padding:6px 0">${cList}</div><div style="display:flex;gap:6px;margin-top:4px"><input id="cmt-${p.id}" placeholder="Add a comment" style="flex:1"><button class="btn sm" onclick="addComment('${p.id}')">Post</button></div></details>`;
+    return `<div style="margin-bottom:16px;border-bottom:1px dashed var(--line);padding-bottom:12px"><b>${esc(p.title)}</b> <span class="tag">${esc(areaLabel(p.area))}${dead}${closed?' · closed':''}</span>`+
       opts.map(o=>{ const c=votes.filter(v=>v.option_id===o.id).length; const pct=Math.round(c/tot*100);
         return `<div class="opt ${mine.includes(o.id)?'sel':''}" ${closed?'':`onclick="vote('${p.id}','${o.id}',${p.allow_multiple})"`}><span>${esc(o.label)}</span><span class="muted">${c} · ${pct}%</span></div><div class="bar"><span style="width:${pct}%"></span></div>`;
       }).join('')+
       (canEdit(p)?` <a class="tag" style="cursor:pointer;color:var(--terra)" onclick="togglePoll('${p.id}','${p.status}')">${closed?'reopen':'close'}</a> · <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delPoll('${p.id}')">delete</a>`:'')+
+      cBlock+
     `</div>`;
   }).join('');
 }
+async function addComment(pollId){
+  const el=document.getElementById('cmt-'+pollId); const body=(el.value||'').trim();
+  if(!body) return;
+  const { error } = await supa.from('poll_comments').insert({ poll_id:pollId, author:state.me.id, body });
+  if(error){ showErr(error.message); return; }
+  await loadAll();
+}
+async function delComment(id){ await supa.from('poll_comments').delete().eq('id',id); await loadAll(); }
 const areaLabel = a => (AREAS.find(x=>x[0]===a)||[null,'General'])[1];
 const canEdit = r => state.me.is_organizer || r.created_by===state.me.id;
 async function vote(pollId, optId, multi){
