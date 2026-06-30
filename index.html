@@ -128,7 +128,7 @@
   <section class="panel" id="rsvp">
     <div class="note">The big group activities run <b>Friday–Sunday</b> — but you're welcome to come as early as <b>Wednesday</b> and stay through <b>Monday</b>. Note your arrival and departure below.</div>
     <div class="card">
-      <h2>Your RSVP</h2><h3 id="rsvpRole"></h3>
+      <h2>Your RSVP</h2>
       <div class="grid2">
         <div><label>Status</label><select id="r_status"><option value="in">I'm in! 🎉</option><option value="maybe">Maybe</option><option value="out">Can't make it</option><option value="pending">Haven't decided</option></select></div>
         <div><label>Nights</label><input id="r_nights" type="text" placeholder="All nights / partial"></div>
@@ -138,8 +138,7 @@
       <label>Confirm your preferred email (for trip updates)</label><input id="r_cemail" type="email" placeholder="you@email.com">
       <label>Phone number (for group texts)</label><input id="r_phone" type="tel" placeholder="(555) 123-4567">
       <label>Dietary notes / allergies</label><input id="r_diet" type="text" placeholder="optional">
-      <label>Who would you be happy rooming with? (name one)</label><input id="r_room" type="text" placeholder="Two villas · 4 bedrooms each">
-      <label>Anything else (rooming, carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
+      <label>Anything else (carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
       <div style="margin-top:12px"><button class="btn" id="saveRsvp">Save my RSVP</button> <span id="rsvpMsg" class="muted"></span></div>
     </div>
   </section>
@@ -292,13 +291,12 @@ const goingPeople = () => state.people.filter(p=>p.rsvp_status==='in');
 // ---------- RSVP ----------
 function renderRsvp(){
   const m=state.me;
-  $('#rsvpRole').textContent = m.role_label ? ('Your role: '+m.role_label) : 'No role assigned yet';
   $('#r_status').value=m.rsvp_status||'pending'; $('#r_nights').value=m.notes_nights||'';
-  $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_room').value=m.roommate_pref||''; $('#r_notes').value=m.notes||'';
+  $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_notes').value=m.notes||'';
   $('#r_cemail').value=m.contact_email||m.email||''; $('#r_phone').value=m.phone||'';
 }
 $('#saveRsvp').onclick = async () => {
-  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, roommate_pref:$('#r_room').value, contact_email:$('#r_cemail').value, phone:$('#r_phone').value, notes:$('#r_notes').value };
+  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, contact_email:$('#r_cemail').value, phone:$('#r_phone').value, notes:$('#r_notes').value };
   const { error } = await supa.from('people').update(upd).eq('id', state.me.id);
   if(error){ showErr(error.message); return; }
   Object.assign(state.me, upd); $('#rsvpMsg').textContent='Saved ✓'; setTimeout(()=>$('#rsvpMsg').textContent='',2000);
@@ -320,7 +318,6 @@ function renderRoster(){
   $('#rosterList').innerHTML = state.people.map(p=>{
     const s=p.rsvp_status;
     const bits=[];
-    if(p.roommate_pref) bits.push('🛏 '+esc(p.roommate_pref));
     if(p.phone) bits.push('📱 '+esc(p.phone));
     if(p.contact_email||p.email) bits.push('✉️ '+esc(p.contact_email||p.email));
     const sub=bits.length?`<br><span class="muted">${bits.join(' · ')}</span>`:'';
