@@ -117,6 +117,8 @@
         <div><label>Arrival day</label><input id="r_arr" type="text" placeholder="e.g. Wed Mar 3"></div>
         <div><label>Departure day</label><input id="r_dep" type="text" placeholder="e.g. Mon Mar 8"></div>
       </div>
+      <label>Confirm your preferred email (for trip updates)</label><input id="r_cemail" type="email" placeholder="you@email.com">
+      <label>Phone number (for group texts)</label><input id="r_phone" type="tel" placeholder="(555) 123-4567">
       <label>Dietary notes / allergies</label><input id="r_diet" type="text" placeholder="optional">
       <label>Who would you be happy rooming with? (name one)</label><input id="r_room" type="text" placeholder="Two villas · 4 bedrooms each">
       <label>Anything else (rooming, carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
@@ -125,7 +127,9 @@
     <div class="card"><h2>At a glance</h2><div id="glance"></div></div>
   </section>
 
-  <section class="panel" id="roster"><div class="card"><h2>The Crew</h2><h3>13 invited · RSVP status</h3><div id="rosterList"></div></div></section>
+  <section class="panel" id="roster"><div class="card"><h2>The Crew</h2><h3>13 invited · RSVP status</h3>
+    <div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn sm" id="emailAll">✉️ Email everyone</button><button class="btn sm ghost" id="textAll">💬 Text everyone</button></div>
+    <div id="rosterList"></div></div></section>
 
   <section class="panel" id="schedule">
     <div class="card"><h2>Planning Assignments</h2><div id="roleList"></div></div>
@@ -204,9 +208,9 @@ const ROLE_GROUPS = [
 const SCHEDULE = [
   ["Wed · Mar 3","Arrivals",["Check into the two villas, settle in","Welcome dinner / poolside drinks"],false],
   ["Thu · Mar 4","Pool & Spa + Optional Tennis",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Optional: morning massages at the villa","Casual dinner in"],false],
-  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Group day session — Stadium 1","Grounds pass · watch practice","Nobu lunch ~11:30","★ Private chef dinner at the villa (after the session)"],true],
-  ["Sat · Mar 6","Night Session",["Relaxed daytime / pool","Gates 4:30 · Stadium 1 ~6pm"],false],
-  ["Sun · Mar 7","Sunday Brunch + Gift Bags",["★ Group Sunday brunch","Optional: Sunday-morning massages at the villa","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
+  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Group day session","★ Private chef dinner at the villa (after the session)"],true],
+  ["Sat · Mar 6","Relaxed Day + Night Session",["Relaxed day / pool","★ Night session (gates 4:30, ~6pm)"],true],
+  ["Sun · Mar 7","Sunday Brunch + Gift Bags",["Optional: Sunday-morning massages at the villa","★ Group Sunday brunch (~12:30–1pm)","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
   ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
 ];
 
@@ -272,9 +276,10 @@ function renderRsvp(){
   $('#rsvpRole').textContent = m.role_label ? ('Your role: '+m.role_label) : 'No role assigned yet';
   $('#r_status').value=m.rsvp_status||'pending'; $('#r_nights').value=m.notes_nights||'';
   $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_room').value=m.roommate_pref||''; $('#r_notes').value=m.notes||'';
+  $('#r_cemail').value=m.contact_email||m.email||''; $('#r_phone').value=m.phone||'';
 }
 $('#saveRsvp').onclick = async () => {
-  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, roommate_pref:$('#r_room').value, notes:$('#r_notes').value };
+  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, roommate_pref:$('#r_room').value, contact_email:$('#r_cemail').value, phone:$('#r_phone').value, notes:$('#r_notes').value };
   const { error } = await supa.from('people').update(upd).eq('id', state.me.id);
   if(error){ showErr(error.message); return; }
   Object.assign(state.me, upd); $('#rsvpMsg').textContent='Saved ✓'; setTimeout(()=>$('#rsvpMsg').textContent='',2000);
@@ -295,9 +300,18 @@ const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
 function renderRoster(){
   $('#rosterList').innerHTML = state.people.map(p=>{
     const s=p.rsvp_status;
-    const rm=p.roommate_pref?`🛏 ${esc(p.roommate_pref)}`:'';
-    return `<div class="row"><span><b>${esc(p.full_name)}</b>${rm?`<br><span class="muted">${rm}</span>`:''}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
+    const bits=[];
+    if(p.roommate_pref) bits.push('🛏 '+esc(p.roommate_pref));
+    if(p.phone) bits.push('📱 '+esc(p.phone));
+    if(p.contact_email||p.email) bits.push('✉️ '+esc(p.contact_email||p.email));
+    const sub=bits.length?`<br><span class="muted">${bits.join(' · ')}</span>`:'';
+    return `<div class="row"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
   }).join('');
+  const emails=state.people.map(p=>p.contact_email||p.email).filter(Boolean);
+  const phones=state.people.map(p=>p.phone).filter(Boolean);
+  const eb=$('#emailAll'), tb=$('#textAll');
+  if(eb) eb.onclick=()=>{ location.href='mailto:?bcc='+encodeURIComponent(emails.join(',')); };
+  if(tb) tb.onclick=()=>{ if(!phones.length){ showErr('No phone numbers yet — they fill in as people RSVP.'); return; } location.href='sms:'+encodeURIComponent(phones.join(',')); };
 }
 function renderRoles(){
   $('#roleList').innerHTML = ROLE_GROUPS.map(([label,area,desc])=>{
