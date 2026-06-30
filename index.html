@@ -126,6 +126,7 @@
   </section>
 
   <section class="panel" id="rsvp">
+    <div class="note">The big group activities run <b>Friday–Sunday</b> — but you're welcome to come as early as <b>Wednesday</b> and stay through <b>Monday</b>. Note your arrival and departure below.</div>
     <div class="card">
       <h2>Your RSVP</h2><h3 id="rsvpRole"></h3>
       <div class="grid2">
@@ -230,6 +231,8 @@ const SCHEDULE = [
   ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
 ];
 
+const STAGED_ROLLOUT = true;          // set to false to reveal all tabs to everyone
+const MEMBER_TABS = ['home','rsvp'];  // tabs non-organizers see during staged rollout
 let state = { me:null, people:[] };
 const $ = s => document.querySelector(s);
 const showErr = m => { const e=$('#err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',6000); };
@@ -493,6 +496,16 @@ function setupPermissions(){
   $('#addExpenseCard').classList.toggle('hide', !isLead);
   $('#e_paid').innerHTML = state.people.map(p=>`<option value="${p.id}" ${p.id===m.id?'selected':''}>${esc(p.full_name)}</option>`).join('');
   $('#e_people').innerHTML = state.people.map(p=>`<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 0 0;font-size:13px"><input type="checkbox" value="${p.id}" style="width:auto"> ${esc(p.full_name.split(' ')[0])}</label>`).join('');
+  // Staged rollout: members see only Home + RSVP for now; organizer keeps full access.
+  if(STAGED_ROLLOUT && !m.is_organizer){
+    document.querySelectorAll('nav button').forEach(b=>{ if(!MEMBER_TABS.includes(b.dataset.t)) b.classList.add('hide'); });
+    const active=document.querySelector('.panel.active');
+    if(active && !MEMBER_TABS.includes(active.id)){
+      document.querySelectorAll('nav button,.panel').forEach(x=>x.classList.remove('active'));
+      document.querySelector('nav button[data-t="home"]').classList.add('active');
+      document.getElementById('home').classList.add('active');
+    }
+  }
 }
 
 // ---------- NAV ----------
