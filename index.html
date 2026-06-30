@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indian Wells 2027 — Trip Hub</title>
+<style>
+  :root{
+    --sand:#fdf1e0; --cream:#fffaf2; --terra:#c9663f; --terra-d:#a85c39;
+    --ink:#3f2a1c; --muted:#7c6450; --line:#ecd9c2; --green:#7a8b3c; --ball:#d6e34a;
+    --ok:#2f7d4f; --warn:#b5612a; --shadow:0 8px 24px rgba(120,70,40,.12);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Helvetica,Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(180deg,#f4e3c8,#fdf1e0 360px);min-height:100vh}
+  header{padding:22px 20px 14px;text-align:center}
+  .kicker{letter-spacing:6px;font-size:12px;color:var(--terra);font-weight:700}
+  h1{font-family:Georgia,serif;margin:4px 0 2px;font-size:32px}
+  .sub{color:var(--muted);font-size:14px}
+  .signin{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:#fff;
+    border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14px;cursor:pointer;box-shadow:var(--shadow)}
+  .signin .g{width:18px;height:18px;border-radius:50%;background:conic-gradient(#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0)}
+  .who{margin-top:10px;font-size:13px;color:var(--muted)}
+  .who a{color:var(--terra);cursor:pointer}
+  nav{position:sticky;top:0;z-index:5;display:flex;gap:4px;overflow-x:auto;padding:10px 12px;
+    background:rgba(253,241,224,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav button{white-space:nowrap;border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:14px;color:var(--muted);cursor:pointer;font-weight:600}
+  nav button.active{background:var(--terra);color:#fff}
+  main{max-width:760px;margin:0 auto;padding:18px 16px 90px}
+  .panel{display:none}.panel.active{display:block}
+  .card{background:var(--cream);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-family:Georgia,serif;margin:0 0 4px;font-size:22px}
+  .card h3{margin:0 0 10px;font-size:14px;color:var(--terra-d);font-weight:700}
+  .row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .pill.in{background:#e4f0e4;color:var(--ok)} .pill.maybe{background:#fbeede;color:var(--warn)}
+  .pill.out{background:#f3e2e2;color:#a23b3b} .pill.pending{background:#eee;color:#777}
+  .pill.role{background:#eef0dc;color:var(--green)} .pill.now{background:#fde6d4;color:var(--terra-d)} .pill.end{background:#e7eef5;color:#3b6ea2}
+  .btn{border:0;background:var(--terra);color:#fff;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn.ghost{background:#fff;color:var(--terra);border:1px solid var(--terra)}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .btn[disabled]{opacity:.5;cursor:default}
+  input,select,textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff}
+  label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .day{border-left:3px solid var(--terra);padding:2px 0 8px 14px;margin:14px 0}
+  .day .d{font-weight:700;color:var(--terra-d)}
+  .day .star{font-size:12px;color:var(--terra);font-weight:700}
+  .item{font-size:14px;padding:3px 0}
+  .opt{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin:6px 0;cursor:pointer;background:#fff}
+  .opt.sel{border-color:var(--terra);background:#fff6ef}
+  .opt.full{opacity:.55;cursor:not-allowed}
+  .bar{height:8px;background:#eee;border-radius:999px;overflow:hidden;margin:5px 0 4px}
+  .bar>span{display:block;height:100%;background:var(--terra)}
+  .muted{color:var(--muted);font-size:13px}
+  .big{font-size:26px;font-weight:800;font-family:Georgia,serif}
+  .pos{color:var(--ok)} .neg{color:#a23b3b}
+  .center{text-align:center}
+  .note{background:#fff6ef;border:1px dashed var(--terra);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--terra-d);margin-bottom:14px}
+  .err{background:#fbe9e7;border:1px solid #e0a99a;color:#a23b3b;border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0;display:none}
+  .gate{max-width:520px;margin:40px auto;text-align:center}
+  details{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+  summary{cursor:pointer;font-weight:600;color:var(--terra-d);font-size:14px}
+  .tag{font-size:11px;color:var(--muted)}
+  a.vault{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px dashed var(--line);text-decoration:none;color:var(--ink)}
+  a.vault:last-child{border-bottom:0}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">BNP PARIBAS OPEN</div>
+  <h1>Indian Wells 2027</h1>
+  <div class="sub">March 3–8, 2027 · Girls Trip Hub</div>
+  <div id="authArea">
+    <div class="signin" id="signinBtn"><span class="g"></span><span>Sign in with Google</span></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted)">— or —</div>
+    <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+      <input id="emailInput" type="email" placeholder="you@gmail.com" style="max-width:220px">
+      <button class="btn sm ghost" id="emailBtn">Email me a sign-in link</button>
+    </div>
+    <div id="authMsg" class="muted" style="margin-top:6px"></div>
+  </div>
+  <div class="who" id="who"></div>
+</header>
+
+<div class="err" id="err"></div>
+
+<!-- Sign-in gate -->
+<div class="gate" id="gate">
+  <div class="card">
+    <h2>Welcome 🎾</h2>
+    <p class="muted">This hub is for our Indian Wells crew. Sign in with the Google account tied to your invite to RSVP, vote, sign up, and track shared costs.</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" class="hide">
+<nav id="nav">
+  <button class="active" data-t="home">Home</button>
+  <button data-t="roster">Roster</button>
+  <button data-t="schedule">Schedule &amp; Roles</button>
+  <button data-t="polls">Polls &amp; Sign-ups</button>
+  <button data-t="expenses">Expenses</button>
+  <button data-t="vault">Info Vault</button>
+</nav>
+<main>
+  <section class="panel active" id="home">
+    <div class="card"><h2>Hi <span id="hiName"></span> 👋</h2>
+      <p class="muted">Two villas (4 bedrooms each), one day + one night session, a private chef night, a spa morning, and pool time in between. Indian Wells is an easy drive — no flights needed, we'll sort carpools. Update your RSVP below, then check the polls and sign-ups.</p></div>
+    <div class="card">
+      <h2>Your RSVP</h2><h3 id="rsvpRole"></h3>
+      <div class="grid2">
+        <div><label>Status</label><select id="r_status"><option value="in">I'm in! 🎉</option><option value="maybe">Maybe</option><option value="out">Can't make it</option><option value="pending">Haven't decided</option></select></div>
+        <div><label>Nights</label><input id="r_nights" type="text" placeholder="All nights / partial"></div>
+        <div><label>Arrival day</label><input id="r_arr" type="text" placeholder="e.g. Wed Mar 3"></div>
+        <div><label>Departure day</label><input id="r_dep" type="text" placeholder="e.g. Mon Mar 8"></div>
+      </div>
+      <label>Dietary notes / allergies</label><input id="r_diet" type="text" placeholder="optional">
+      <label>Who would you be happy rooming with? (name one)</label><input id="r_room" type="text" placeholder="Two villas · 4 bedrooms each">
+      <label>Anything else (rooming, carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
+      <div style="margin-top:12px"><button class="btn" id="saveRsvp">Save my RSVP</button> <span id="rsvpMsg" class="muted"></span></div>
+    </div>
+    <div class="card"><h2>At a glance</h2><div id="glance"></div></div>
+  </section>
+
+  <section class="panel" id="roster"><div class="card"><h2>The Crew</h2><h3>13 invited · RSVP status</h3><div id="rosterList"></div></div></section>
+
+  <section class="panel" id="schedule">
+    <div class="card"><h2>Planning Assignments</h2><div id="roleList"></div></div>
+    <div class="card"><h2>Day by day</h2><h3>Draft — shifts as tickets &amp; sessions firm up</h3><div id="dayList"></div></div>
+  </section>
+
+  <section class="panel" id="polls">
+    <div class="card"><h2>Polls</h2><h3>Group decisions — tap to vote</h3><div id="pollList"></div>
+      <details id="newPollWrap"><summary>+ New poll</summary>
+        <label>Question</label><input id="np_title" type="text">
+        <label>Area</label><select id="np_area"></select>
+        <label>Options (one per line)</label><textarea id="np_opts" rows="3" placeholder="Friday&#10;Saturday&#10;Sunday"></textarea>
+        <label>Deadline (optional)</label><input id="np_deadline" type="date">
+        <div style="margin-top:10px"><button class="btn sm" id="np_save">Create poll</button></div>
+      </details>
+    </div>
+    <div class="card"><h2>Sign-ups</h2><h3>Pick your options</h3><div id="signupList"></div>
+      <details id="newSignupWrap"><summary>+ New sign-up</summary>
+        <label>Title</label><input id="ns_title" type="text" placeholder="e.g. Massage length">
+        <label>Area</label><select id="ns_area"></select>
+        <label>Options — one per line, add "| number" to cap slots</label>
+        <textarea id="ns_opts" rows="3" placeholder="50 min&#10;80 min | 6&#10;Skip"></textarea>
+        <label>Deadline (optional)</label><input id="ns_deadline" type="date">
+        <div style="margin-top:10px"><button class="btn sm" id="ns_save">Create sign-up</button></div>
+      </details>
+    </div>
+  </section>
+
+  <section class="panel" id="expenses">
+    <div class="card center"><h3 style="margin-bottom:2px">Your balance</h3>
+      <div class="big" id="myBal">—</div>
+      <div class="muted">Settle up at the end of the trip · big items can be split as we go</div></div>
+    <div class="card" id="addExpenseCard">
+      <h2>Add an expense</h2>
+      <div class="grid2">
+        <div><label>What</label><input id="e_desc" type="text" placeholder="e.g. Private chef"></div>
+        <div><label>Amount</label><input id="e_amt" type="number" placeholder="0.00"></div>
+        <div><label>Paid by</label><select id="e_paid"></select></div>
+        <div><label>Split</label><select id="e_split"><option value="everyone">Everyone going</option><option value="custom">Custom (choose people)</option></select></div>
+      </div>
+      <div id="e_customWrap" class="hide"><label>Split among</label><div id="e_people"></div></div>
+      <label>Settle</label><select id="e_settle"><option value="end">At the end (default)</option><option value="now">Split now — large item</option></select>
+      <div style="margin-top:12px"><button class="btn" id="e_save">Add expense</button> <span id="e_msg" class="muted"></span></div>
+    </div>
+    <div class="card"><h2>Ledger</h2><div id="expList"></div></div>
+    <div class="card"><h2>Balances</h2><h3>Who owes what (running)</h3><div id="balList"></div></div>
+  </section>
+
+  <section class="panel" id="vault">
+    <div class="card"><h2>Info Vault</h2><h3>Everything in one place</h3><div id="vaultList"></div></div>
+    <div class="card"><h2>Packing reminders</h2>
+      <div class="item">• Bathing suit + cover-up</div><div class="item">• Clear stadium bag (venue policy)</div>
+      <div class="item">• Sunscreen, hat, sunglasses</div><div class="item">• Comfy shoes for the grounds</div>
+      <div class="item">• Layers — desert nights get cool</div><div class="item">• Your preferred drinks 🍸</div>
+    </div>
+  </section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://uisdlyvtottjtlrdzede.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ENE9dQgbPIKtpF4r1hNp1w_IGsebhBd";
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2027'} });
+
+const AREAS = [["house","House & chef"],["tickets","Tickets"],["dining","Tennis Paradise / dining"],["massage","Massage"],["groceries","Groceries & supplies"],["giftbags","Gift bags"]];
+const ROLE_GROUPS = [
+  ["House & private chef","house","Book the private chef and select the menu, then bring the options to the group to decide — and lock in the booking."],
+  ["Tickets","tickets","Scout ticket options for the day & night sessions, let the group know what's available, and lead the booking."],
+  ["Activities & dining @ Tennis Paradise","dining","Scout activities and dining at Tennis Paradise, share the options with the group, and lead the booking."],
+  ["Massage","massage","Find a mobile massage company to come to one of the villas, and figure out the sign-ups and costs."],
+  ["Groceries & supplies","groceries","Plan the grocery & supply list, gather everyone's requests, and handle the Instacart order for the villas."],
+  ["Gift bags","giftbags","Design and source the gift bags, then assemble them for the group."],
+];
+
+const SCHEDULE = [
+  ["Wed · Mar 3","Arrivals",["Check into the two villas, settle in","Welcome dinner / poolside drinks"],false],
+  ["Thu · Mar 4","Pool & Spa + Optional Tennis",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Optional: morning massages at the villa","Casual dinner in"],false],
+  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Group day session — Stadium 1","Grounds pass · watch practice","Nobu lunch ~11:30","★ Private chef dinner at the villa (after the session)"],true],
+  ["Sat · Mar 6","Night Session",["Relaxed daytime / pool","Gates 4:30 · Stadium 1 ~6pm"],false],
+  ["Sun · Mar 7","Sunday Brunch + Gift Bags",["★ Group Sunday brunch","Optional: Sunday-morning massages at the villa","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
+  ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
+];
+
+let state = { me:null, people:[] };
+const $ = s => document.querySelector(s);
+const showErr = m => { const e=$('#err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',6000); };
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---------- AUTH ----------
+$('#signinBtn').onclick = async () => {
+  const { error } = await supa.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.href.split('#')[0] }});
+  if(error) showErr("Sign-in error: "+error.message+" — Google sign-in may not be configured yet.");
+};
+const emailBtn=$('#emailBtn');
+if(emailBtn) emailBtn.onclick = async () => {
+  const email=($('#emailInput').value||'').trim();
+  if(!email){ showErr('Enter your email first.'); return; }
+  const { error } = await supa.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split('#')[0] }});
+  if(error){ showErr(error.message); return; }
+  $('#authMsg').textContent='Check your email for the sign-in link ✓';
+};
+async function boot(){
+  const { data:{ session } } = await supa.auth.getSession();
+  if(!session){ $('#gate').classList.remove('hide'); return; }
+  await supa.rpc('claim_membership');
+  const { data: me, error } = await supa.from('people').select('*').eq('user_id', session.user.id).maybeSingle();
+  if(error){ showErr(error.message); }
+  if(!me){
+    $('#gate').classList.remove('hide');
+    $('#gate').innerHTML = '<div class="card"><h2>Not on the list yet</h2><p class="muted">'+esc(session.user.email)+' isn\'t on the invite list. Ask Noel to add you, then sign in again.</p><button class="btn ghost" onclick="signOut()">Sign out</button></div>';
+    return;
+  }
+  state.me = me;
+  $('#authArea').innerHTML = '';
+  $('#who').innerHTML = 'Signed in as '+esc(me.full_name)+' · <a onclick="signOut()">Sign out</a>';
+  $('#gate').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#hiName').textContent = (me.full_name||'').split(' ')[0];
+  await loadAll();
+}
+async function signOut(){ await supa.auth.signOut(); location.reload(); }
+supa.auth.onAuthStateChange((_e, s)=>{ if(s && $('#app').classList.contains('hide')) boot(); });
+
+// ---------- LOAD ----------
+async function loadAll(){
+  const [{data:people},{data:polls},{data:signups},{data:expenses},{data:vault}] = await Promise.all([
+    supa.from('people').select('*').order('full_name'),
+    supa.from('polls').select('*, poll_options(*), poll_votes(*)').order('created_at'),
+    supa.from('signups').select('*, signup_options(*), signup_choices(*)').order('created_at'),
+    supa.from('expenses').select('*, expense_shares(*)').order('created_at'),
+    supa.from('vault_items').select('*').order('sort'),
+  ]);
+  state.people = people||[];
+  renderRsvp(); renderGlance(polls); renderRoster(); renderRoles(); renderSchedule();
+  renderPolls(polls||[]); renderSignups(signups||[]); renderExpenses(expenses||[]); renderVault(vault||[]);
+  setupPermissions();
+}
+const nameOf = id => (state.people.find(p=>p.id===id)||{}).full_name || '—';
+const goingPeople = () => state.people.filter(p=>p.rsvp_status==='in');
+
+// ---------- RSVP ----------
+function renderRsvp(){
+  const m=state.me;
+  $('#rsvpRole').textContent = m.role_label ? ('Your role: '+m.role_label) : 'No role assigned yet';
+  $('#r_status').value=m.rsvp_status||'pending'; $('#r_nights').value=m.notes_nights||'';
+  $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_room').value=m.roommate_pref||''; $('#r_notes').value=m.notes||'';
+}
+$('#saveRsvp').onclick = async () => {
+  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, roommate_pref:$('#r_room').value, notes:$('#r_notes').value };
+  const { error } = await supa.from('people').update(upd).eq('id', state.me.id);
+  if(error){ showErr(error.message); return; }
+  Object.assign(state.me, upd); $('#rsvpMsg').textContent='Saved ✓'; setTimeout(()=>$('#rsvpMsg').textContent='',2000);
+  await loadAll();
+};
+function renderGlance(polls){
+  const going=state.people.filter(p=>p.rsvp_status==='in').length;
+  const open=(polls||[]).filter(p=>p.status==='open').length;
+  const days=Math.max(0,Math.round((new Date('2027-03-03')-new Date())/864e5));
+  $('#glance').innerHTML =
+    row('Confirmed so far', going+' of '+state.people.length)+
+    row('Days to trip', '~'+days)+
+    row('Open polls', open);
+}
+const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
+
+// ---------- ROSTER / ROLES / SCHEDULE ----------
+function renderRoster(){
+  $('#rosterList').innerHTML = state.people.map(p=>{
+    const s=p.rsvp_status;
+    const rm=p.roommate_pref?`🛏 ${esc(p.roommate_pref)}`:'';
+    return `<div class="row"><span><b>${esc(p.full_name)}</b>${rm?`<br><span class="muted">${rm}</span>`:''}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
+  }).join('');
+}
+function renderRoles(){
+  $('#roleList').innerHTML = ROLE_GROUPS.map(([label,area,desc])=>{
+    const who=state.people.filter(p=>(p.lead_area||[]).includes(area)).map(p=>p.full_name.split(' ')[0]).join(', ')||'—';
+    return `<div style="padding:11px 0;border-bottom:1px dashed var(--line)"><div class="row" style="border:0;padding:0 0 4px"><span><b>${label}</b></span><span class="pill role">${esc(who)}</span></div><div class="muted">${esc(desc)}</div></div>`;
+  }).join('');
+}
+function renderSchedule(){
+  $('#dayList').innerHTML = SCHEDULE.map(([d,t,items,star])=>
+    `<div class="day"><div class="d">${d} ${star?'<span class="star">★ anchor</span>':''}</div><div style="font-weight:600;margin:2px 0">${t}</div>${items.map(i=>`<div class="item">${esc(i)}</div>`).join('')}</div>`
+  ).join('');
+}
+
+// ---------- POLLS ----------
+function renderPolls(polls){
+  if(!polls.length){ $('#pollList').innerHTML='<p class="muted">No polls yet.</p>'; return; }
+  $('#pollList').innerHTML = polls.map(p=>{
+    const opts=(p.poll_options||[]).sort((a,b)=>a.sort-b.sort);
+    const votes=p.poll_votes||[];
+    const tot=votes.length||1;
+    const mine=votes.filter(v=>v.voter===state.me.id).map(v=>v.option_id);
+    const dead=p.deadline?` · by ${new Date(p.deadline).toLocaleDateString()}`:'';
+    const closed=p.status!=='open';
+    return `<div style="margin-bottom:16px"><b>${esc(p.title)}</b> <span class="tag">${esc(areaLabel(p.area))}${dead}${closed?' · closed':''}</span>`+
+      opts.map(o=>{ const c=votes.filter(v=>v.option_id===o.id).length; const pct=Math.round(c/tot*100);
+        return `<div class="opt ${mine.includes(o.id)?'sel':''}" ${closed?'':`onclick="vote('${p.id}','${o.id}',${p.allow_multiple})"`}><span>${esc(o.label)}</span><span class="muted">${c} · ${pct}%</span></div><div class="bar"><span style="width:${pct}%"></span></div>`;
+      }).join('')+
+      (canEdit(p)?` <a class="tag" style="cursor:pointer;color:var(--terra)" onclick="togglePoll('${p.id}','${p.status}')">${closed?'reopen':'close'}</a> · <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delPoll('${p.id}')">delete</a>`:'')+
+    `</div>`;
+  }).join('');
+}
+const areaLabel = a => (AREAS.find(x=>x[0]===a)||[null,'General'])[1];
+const canEdit = r => state.me.is_organizer || r.created_by===state.me.id;
+async function vote(pollId, optId, multi){
+  if(!multi){ await supa.from('poll_votes').delete().eq('poll_id',pollId).eq('voter',state.me.id); }
+  const { data:existing } = await supa.from('poll_votes').select('id').eq('poll_id',pollId).eq('option_id',optId).eq('voter',state.me.id).maybeSingle();
+  if(existing){ await supa.from('poll_votes').delete().eq('id',existing.id); }
+  else { const { error } = await supa.from('poll_votes').insert({ poll_id:pollId, option_id:optId, voter:state.me.id }); if(error) showErr(error.message); }
+  await loadAll();
+}
+async function togglePoll(id,st){ await supa.from('polls').update({status: st==='open'?'closed':'open'}).eq('id',id); await loadAll(); }
+async function delPoll(id){ if(confirm('Delete this poll?')){ await supa.from('polls').delete().eq('id',id); await loadAll(); } }
+$('#np_save').onclick = async () => {
+  const title=$('#np_title').value.trim(); const area=$('#np_area').value||null;
+  const opts=$('#np_opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!title||opts.length<2){ showErr('Add a question and at least 2 options.'); return; }
+  const dl=$('#np_deadline').value? new Date($('#np_deadline').value).toISOString():null;
+  const { data:poll, error } = await supa.from('polls').insert({title,area,deadline:dl,created_by:state.me.id}).select().single();
+  if(error){ showErr(error.message); return; }
+  await supa.from('poll_options').insert(opts.map((label,i)=>({poll_id:poll.id,label,sort:i})));
+  $('#np_title').value='';$('#np_opts').value='';$('#np_deadline').value=''; await loadAll();
+};
+
+// ---------- SIGN-UPS ----------
+function renderSignups(signups){
+  if(!signups.length){ $('#signupList').innerHTML='<p class="muted">No sign-ups yet.</p>'; return; }
+  $('#signupList').innerHTML = signups.map(s=>{
+    const opts=(s.signup_options||[]).sort((a,b)=>a.sort-b.sort);
+    const choices=s.signup_choices||[];
+    const mine=choices.find(c=>c.person===state.me.id);
+    const dead=s.deadline?` · by ${new Date(s.deadline).toLocaleDateString()}`:'';
+    const closed=s.status!=='open' || (s.deadline && new Date()>new Date(s.deadline));
+    return `<div style="margin-bottom:16px"><b>${esc(s.title)}</b> <span class="tag">${esc(areaLabel(s.area))}${dead}${closed?' · closed':''}</span>`+
+      opts.map(o=>{ const c=choices.filter(x=>x.option_id===o.id).length;
+        const full=o.capacity!=null && c>=o.capacity && (!mine||mine.option_id!==o.id);
+        const cap=o.capacity!=null?` ${c}/${o.capacity}`:` ${c}`;
+        return `<div class="opt ${mine&&mine.option_id===o.id?'sel':''} ${full?'full':''}" ${closed||full?'':`onclick="choose('${s.id}','${o.id}')"`}><span>${esc(o.label)}</span><span class="muted">${full?'full':cap}</span></div>`;
+      }).join('')+
+      (canEdit(s)?` <a class="tag" style="cursor:pointer;color:var(--terra)" onclick="toggleSignup('${s.id}','${s.status}')">${s.status==='open'?'close':'reopen'}</a> · <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delSignup('${s.id}')">delete</a>`:'')+
+    `</div>`;
+  }).join('');
+}
+async function choose(signupId, optId){
+  await supa.from('signup_choices').delete().eq('signup_id',signupId).eq('person',state.me.id);
+  const { error } = await supa.from('signup_choices').insert({ signup_id:signupId, option_id:optId, person:state.me.id });
+  if(error) showErr(error.message);
+  await loadAll();
+}
+async function toggleSignup(id,st){ await supa.from('signups').update({status: st==='open'?'closed':'open'}).eq('id',id); await loadAll(); }
+async function delSignup(id){ if(confirm('Delete this sign-up?')){ await supa.from('signups').delete().eq('id',id); await loadAll(); } }
+$('#ns_save').onclick = async () => {
+  const title=$('#ns_title').value.trim(); const area=$('#ns_area').value||null;
+  const lines=$('#ns_opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!title||lines.length<2){ showErr('Add a title and at least 2 options.'); return; }
+  const dl=$('#ns_deadline').value? new Date($('#ns_deadline').value).toISOString():null;
+  const { data:su, error } = await supa.from('signups').insert({title,area,deadline:dl,created_by:state.me.id}).select().single();
+  if(error){ showErr(error.message); return; }
+  const opts=lines.map((l,i)=>{ const [label,cap]=l.split('|').map(x=>x.trim()); return {signup_id:su.id,label,capacity:cap?parseInt(cap):null,sort:i}; });
+  await supa.from('signup_options').insert(opts);
+  $('#ns_title').value='';$('#ns_opts').value='';$('#ns_deadline').value=''; await loadAll();
+};
+
+// ---------- EXPENSES ----------
+function renderExpenses(expenses){
+  const ledger=$('#expList');
+  if(!expenses.length){ ledger.innerHTML='<p class="muted">No expenses logged yet.</p>'; }
+  else ledger.innerHTML = expenses.map(e=>
+    `<div class="row"><span><b>${esc(e.description)}</b><br><span class="muted">Paid by ${esc(nameOf(e.paid_by))} · ${e.split_mode==='everyone'?'split among everyone going':'custom split'}</span></span>
+     <span style="text-align:right">$${Number(e.amount).toLocaleString(undefined,{minimumFractionDigits:2})}<br><span class="pill ${e.settle}">${e.settle==='now'?'split now':'at end'}</span>${canEdit(e)?` <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delExp('${e.id}')">×</a>`:''}</span></div>`
+  ).join('');
+  // balances
+  const bal={}; state.people.forEach(p=>bal[p.id]=0);
+  expenses.forEach(e=>{
+    let parts;
+    if(e.split_mode==='custom' && (e.expense_shares||[]).length){ parts=e.expense_shares.map(s=>({id:s.person,w:Number(s.weight||1)})); }
+    else { const g=goingPeople(); parts=(g.length?g:state.people).map(p=>({id:p.id,w:1})); }
+    const tw=parts.reduce((a,b)=>a+b.w,0)||1;
+    parts.forEach(pt=>{ if(bal[pt.id]!=null) bal[pt.id]-= Number(e.amount)*pt.w/tw; });
+    if(bal[e.paid_by]!=null) bal[e.paid_by]+= Number(e.amount);
+  });
+  const my=bal[state.me.id]||0;
+  $('#myBal').innerHTML = my>=0 ? `<span class="pos">You're owed $${my.toFixed(2)}</span>` : `<span class="neg">You owe $${(-my).toFixed(2)}</span>`;
+  $('#balList').innerHTML = state.people.filter(p=>Math.abs(bal[p.id])>0.005).sort((a,b)=>bal[b.id]-bal[a.id]).map(p=>{
+    const v=bal[p.id];
+    return `<div class="row"><span>${esc(p.full_name)}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'is owed':'owes'} $${Math.abs(v).toFixed(2)}</span></div>`;
+  }).join('') || '<p class="muted">No balances yet.</p>';
+}
+async function delExp(id){ if(confirm('Delete this expense?')){ await supa.from('expenses').delete().eq('id',id); await loadAll(); } }
+$('#e_split').onchange = e => $('#e_customWrap').classList.toggle('hide', e.target.value!=='custom');
+$('#e_save').onclick = async () => {
+  const desc=$('#e_desc').value.trim(); const amt=parseFloat($('#e_amt').value);
+  if(!desc||!(amt>=0)){ showErr('Add a description and amount.'); return; }
+  const split=$('#e_split').value;
+  const { data:exp, error } = await supa.from('expenses').insert({
+    description:desc, amount:amt, paid_by:$('#e_paid').value, split_mode:split, settle:$('#e_settle').value, created_by:state.me.id
+  }).select().single();
+  if(error){ showErr(error.message); return; }
+  if(split==='custom'){
+    const chosen=[...document.querySelectorAll('#e_people input:checked')].map(c=>({expense_id:exp.id, person:c.value}));
+    if(chosen.length) await supa.from('expense_shares').insert(chosen);
+  }
+  $('#e_desc').value='';$('#e_amt').value=''; $('#e_msg').textContent='Added ✓'; setTimeout(()=>$('#e_msg').textContent='',2000);
+  await loadAll();
+};
+
+// ---------- VAULT ----------
+function renderVault(items){
+  $('#vaultList').innerHTML = items.map(v=>
+    `<a class="vault" ${v.url?`href="${esc(v.url)}" target="_blank"`:''}><span>${esc(v.title)}${v.body?` <span class="tag">${esc(v.body)}</span>`:''}</span><span>›</span></a>`
+  ).join('') || '<p class="muted">Empty.</p>';
+}
+
+// ---------- PERMISSIONS / FORMS ----------
+function setupPermissions(){
+  const m=state.me; const isLead=m.is_organizer || (m.lead_area||[]).length>0;
+  const myAreas = m.is_organizer ? AREAS : AREAS.filter(a=>(m.lead_area||[]).includes(a[0]));
+  const optsHtml = (m.is_organizer?'<option value="">General</option>':'') + myAreas.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('');
+  $('#np_area').innerHTML=optsHtml; $('#ns_area').innerHTML=optsHtml;
+  $('#newPollWrap').classList.toggle('hide', !isLead);
+  $('#newSignupWrap').classList.toggle('hide', !isLead);
+  $('#addExpenseCard').classList.toggle('hide', !isLead);
+  $('#e_paid').innerHTML = state.people.map(p=>`<option value="${p.id}" ${p.id===m.id?'selected':''}>${esc(p.full_name)}</option>`).join('');
+  $('#e_people').innerHTML = state.people.map(p=>`<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 0 0;font-size:13px"><input type="checkbox" value="${p.id}" style="width:auto"> ${esc(p.full_name.split(' ')[0])}</label>`).join('');
+}
+
+// ---------- NAV ----------
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); document.getElementById(b.dataset.t).classList.add('active'); scrollTo(0,0);
+});
+
+boot();
+</script>
+</body>
+</html>
