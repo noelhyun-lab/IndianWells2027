@@ -130,7 +130,6 @@
       <h2>Your RSVP</h2>
       <div class="grid2">
         <div><label>Status</label><select id="r_status"><option value="in">I'm in! 🎉</option><option value="maybe">Maybe</option><option value="out">Can't make it</option><option value="pending">Haven't decided</option></select></div>
-        <div><label>Nights</label><input id="r_nights" type="text" placeholder="All nights / partial"></div>
         <div><label>Arrival day</label><input id="r_arr" type="text" placeholder="e.g. Wed Mar 3"></div>
         <div><label>Departure day</label><input id="r_dep" type="text" placeholder="e.g. Mon Mar 8"></div>
       </div>
@@ -313,7 +312,7 @@ const goingPeople = () => state.people.filter(p=>p.rsvp_status==='in');
 // ---------- RSVP ----------
 function renderRsvp(){
   const m=state.me;
-  $('#r_status').value=m.rsvp_status||'pending'; $('#r_nights').value=m.notes_nights||'';
+  $('#r_status').value=m.rsvp_status||'pending';
   $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_notes').value=m.notes||'';
   $('#r_cemail').value=m.contact_email||m.email||''; $('#r_phone').value=m.phone||'';
 }
@@ -339,11 +338,15 @@ const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
 function renderRoster(){
   $('#rosterList').innerHTML = state.people.map(p=>{
     const s=p.rsvp_status;
-    const bits=[];
-    if(p.phone) bits.push('📱 '+esc(p.phone));
-    if(p.contact_email||p.email) bits.push('✉️ '+esc(p.contact_email||p.email));
-    const sub=bits.length?`<br><span class="muted">${bits.join(' · ')}</span>`:'';
-    return `<div class="row"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
+    const lines=[];
+    const contact=[];
+    if(p.contact_email||p.email) contact.push('✉️ '+esc(p.contact_email||p.email));
+    if(p.phone) contact.push('📱 '+esc(p.phone));
+    if(contact.length) lines.push(contact.join(' · '));
+    if(p.arrival_day||p.departure_day) lines.push('📅 '+esc(p.arrival_day||'?')+' → '+esc(p.departure_day||'?'));
+    if(p.dietary) lines.push('🍽 '+esc(p.dietary));
+    const sub=lines.length?`<br><span class="muted">${lines.join('<br>')}</span>`:'';
+    return `<div class="row" style="align-items:flex-start"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
   }).join('');
   const emails=state.people.map(p=>p.contact_email||p.email).filter(Boolean);
   const phones=state.people.map(p=>p.phone).filter(Boolean);
