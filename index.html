@@ -225,9 +225,9 @@ const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2
 const AREAS = [["itinerary","Overall Itinerary"],["tennis","Tennis Paradise"],["cuisine","Cuisine"],["grocbev","Groceries & Beverages"],["giftbags","Gift Bags"],["spirit","Spirit"]];
 const CATEGORIES = [
   {label:'Overall Itinerary', desc:'House & massage coordination — the master plan for the week.', status:'confirmed', from:['itinerary']},
-  {label:'Tennis Paradise', desc:'Tennis & tickets — day/night sessions and grounds.', status:'confirmed', from:['tennis']},
+  {label:'Tennis Paradise', desc:'Tennis, tickets & activities — day/night sessions, grounds and outings.', status:'confirmed', from:['tennis']},
   {label:'Cuisine', desc:'Food, private chef & dining.', status:'confirmed', from:['cuisine']},
-  {label:'Groceries & Beverages', desc:'Groceries, supplies & drinks.', status:'suggested', from:['grocbev']},
+  {label:'Groceries & Beverages', desc:'One combined category — groceries, supplies & drinks.', status:'confirmed', from:['grocbev']},
   {label:'Gift Bags', desc:'Design, source & assemble the gift bags.', status:'confirmed', from:['giftbags']},
   {label:'Spirit', desc:'Camaraderie & games.', status:'confirmed', from:['spirit']},
 ];
