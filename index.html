@@ -340,7 +340,7 @@ const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
 
 // ---------- ROSTER / ROLES / SCHEDULE ----------
 function renderRoster(){
-  $('#rosterList').innerHTML = state.people.map(p=>{
+  const card = p => {
     const s=p.rsvp_status;
     const lines=[];
     const contact=[];
@@ -351,7 +351,16 @@ function renderRoster(){
     if(p.dietary) lines.push('🍽 '+esc(p.dietary));
     const sub=lines.length?`<br><span class="muted">${lines.join('<br>')}</span>`:'';
     return `<div class="row" style="align-items:flex-start"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
-  }).join('');
+  };
+  let html='';
+  [[1,'House 1'],[2,'House 2']].forEach(([h,label])=>{
+    const members=state.people.filter(p=>p.house===h);
+    if(!members.length) return;
+    html += `<h3 style="margin:16px 0 4px;font-size:16px;color:var(--terra-d)">${label} · ${members.length}</h3>`+members.map(card).join('');
+  });
+  const noHouse=state.people.filter(p=>!p.house);
+  if(noHouse.length) html += `<h3 style="margin:16px 0 4px;font-size:16px;color:var(--muted)">Not assigned to a house</h3>`+noHouse.map(card).join('');
+  $('#rosterList').innerHTML = html;
   const emails=state.people.map(p=>p.contact_email||p.email).filter(Boolean);
   const phones=state.people.map(p=>p.phone).filter(Boolean);
   const eb=$('#emailAll'), tb=$('#textAll');
