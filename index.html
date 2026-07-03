@@ -157,7 +157,7 @@
     <div id="rosterList"></div></div></section>
 
   <section class="panel" id="schedule">
-    <div class="card"><h2>Planning Assignments</h2><div id="roleList"></div></div>
+    <div class="card"><h2>Planning Assignments</h2><h3>By house — each area needs a rep from both</h3><div id="roleList"></div></div>
     <div class="card"><h2>Day by day</h2><h3>Draft — shifts as tickets &amp; sessions firm up</h3><div id="dayList"></div></div>
   </section>
 
@@ -368,10 +368,22 @@ function renderRoster(){
   if(tb) tb.onclick=()=>{ if(!phones.length){ showErr('No phone numbers yet — they fill in as people RSVP.'); return; } location.href='sms:'+encodeURIComponent(phones.join(',')); };
 }
 function renderRoles(){
-  $('#roleList').innerHTML = ROLE_GROUPS.map(([label,area,desc])=>{
-    const who=state.people.filter(p=>(p.lead_area||[]).includes(area)).map(p=>p.full_name.split(' ')[0]).join(', ')||'—';
-    return `<div style="padding:11px 0;border-bottom:1px dashed var(--line)"><div class="row" style="border:0;padding:0 0 4px"><span><b>${label}</b></span><span class="pill role">${esc(who)}</span></div><div class="muted">${esc(desc)}</div></div>`;
-  }).join('');
+  const col = (area,h) => {
+    const names=state.people.filter(p=>(p.lead_area||[]).includes(area)&&p.house===h).map(p=>p.full_name.split(' ')[0]);
+    return names.length
+      ? `<span class="pill role">${esc(names.join(', '))}</span>`
+      : `<span class="pill" style="background:#fbe4e0;color:#a23b3b">⚠ needs a rep</span>`;
+  };
+  $('#roleList').innerHTML = ROLE_GROUPS.map(([label,area,desc])=>
+    `<div style="padding:12px 0;border-bottom:1px dashed var(--line)">
+       <div style="font-weight:700">${label}</div>
+       <div class="muted" style="margin:2px 0 8px">${esc(desc)}</div>
+       <div class="grid2">
+         <div><div class="tag" style="font-weight:700;margin-bottom:4px">House 1</div>${col(area,1)}</div>
+         <div><div class="tag" style="font-weight:700;margin-bottom:4px">House 2</div>${col(area,2)}</div>
+       </div>
+     </div>`
+  ).join('');
 }
 function renderSchedule(){
   $('#dayList').innerHTML = SCHEDULE.map(([d,t,items,star])=>
