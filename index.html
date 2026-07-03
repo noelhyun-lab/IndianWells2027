@@ -157,7 +157,7 @@
     <div id="rosterList"></div></div></section>
 
   <section class="panel" id="schedule">
-    <div class="card"><h2>Planning Assignments</h2><h3>By house — each area needs a rep from both</h3><div id="roleList"></div></div>
+    <div class="card"><h2>Planning Assignments</h2><h3>Overall Itinerary confirmed · others proposed for review</h3><div id="roleList"></div></div>
     <div class="card"><h2>Day by day</h2><h3>Draft — shifts as tickets &amp; sessions firm up</h3><div id="dayList"></div></div>
   </section>
 
@@ -222,15 +222,14 @@ const SUPABASE_URL = "https://uisdlyvtottjtlrdzede.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ENE9dQgbPIKtpF4r1hNp1w_IGsebhBd";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2027'} });
 
-const AREAS = [["house","House & chef"],["tickets","Tickets"],["dining","Tennis Paradise / dining"],["massage","Massage"],["groceries","Groceries & supplies"],["giftbags","Gift bags"]];
-const ROLE_GROUPS = [
-  ["House & private chef","house","Book the private chef and select the menu, then bring the options to the group to decide — and lock in the booking."],
-  ["Tickets","tickets","Scout ticket options for the day & night sessions, let the group know what's available, and lead the booking."],
-  ["Activities & dining @ Tennis Paradise","dining","Scout activities and dining at Tennis Paradise, share the options with the group, and lead the booking."],
-  ["Massage","massage","Find a mobile massage company to come to one of the villas, and figure out the sign-ups and costs."],
-  ["Groceries & supplies","groceries","Plan the grocery & supply list, gather everyone's requests, and handle the Instacart order for the villas."],
-  ["Gift bags","giftbags","Design and source the gift bags, then assemble them for the group."],
+const AREAS = [["itinerary","Overall Itinerary"],["house","House & chef"],["tickets","Tickets"],["dining","Tennis Paradise / dining"],["massage","Massage"],["groceries","Groceries & supplies"],["giftbags","Gift bags"]];
+const CATEGORIES = [
+  {label:'Overall Itinerary', desc:'Encompasses house, tickets & massage — the master plan for the week.', status:'confirmed', from:['itinerary']},
+  {label:'Cuisine', desc:'Food, private chef & dining.', status:'suggested', from:['house','dining']},
+  {label:'Groceries & Beverages', desc:'Groceries, supplies & drinks.', status:'suggested', from:['groceries']},
+  {label:'Spirit', desc:'Camaraderie & games.', status:'open', from:[]},
 ];
+const RESLOT = [['tickets','Tickets'],['massage','Massage'],['giftbags','Gift bags']];
 
 const SCHEDULE = [
   ["Wed · Mar 3","Arrivals",["Check into the two villas, settle in","Welcome dinner / poolside drinks"],false],
@@ -368,22 +367,21 @@ function renderRoster(){
   if(tb) tb.onclick=()=>{ if(!phones.length){ showErr('No phone numbers yet — they fill in as people RSVP.'); return; } location.href='sms:'+encodeURIComponent(phones.join(',')); };
 }
 function renderRoles(){
-  const col = (area,h) => {
-    const names=state.people.filter(p=>(p.lead_area||[]).includes(area)&&p.house===h).map(p=>p.full_name.split(' ')[0]);
-    return names.length
-      ? `<span class="pill role">${esc(names.join(', '))}</span>`
-      : `<span class="pill" style="background:#fbe4e0;color:#a23b3b">⚠ needs a rep</span>`;
-  };
-  $('#roleList').innerHTML = ROLE_GROUPS.map(([label,area,desc])=>
-    `<div style="padding:12px 0;border-bottom:1px dashed var(--line)">
-       <div style="font-weight:700">${label}</div>
-       <div class="muted" style="margin:2px 0 8px">${esc(desc)}</div>
-       <div class="grid2">
-         <div><div class="tag" style="font-weight:700;margin-bottom:4px">House 1</div>${col(area,1)}</div>
-         <div><div class="tag" style="font-weight:700;margin-bottom:4px">House 2</div>${col(area,2)}</div>
-       </div>
-     </div>`
-  ).join('');
+  const nm = arr => arr.map(p=>esc(p.full_name.split(' ')[0])+(p.house?` (H${p.house})`:'')).join(', ');
+  let html = CATEGORIES.map(c=>{
+    const members = state.people.filter(p=>(p.lead_area||[]).some(a=>c.from.includes(a)));
+    let badge, body;
+    if(c.status==='confirmed'){ badge='<span class="pill in">Confirmed</span>'; body=members.length?nm(members):'—'; }
+    else if(c.status==='suggested'){ badge='<span class="pill maybe">Suggested — confirm</span>'; body=members.length?nm(members):'<span style="color:#a23b3b">⚠ no one yet</span>'; }
+    else { badge='<span class="pill" style="background:#eee;color:#777">Open</span>'; body='<span style="color:#a23b3b">⚠ needs staffing</span>'; }
+    return `<div style="padding:12px 0;border-bottom:1px dashed var(--line)"><div class="row" style="border:0;padding:0 0 4px"><span><b>${c.label}</b></span>${badge}</div><div class="muted" style="margin-bottom:4px">${esc(c.desc)}</div><div>${body}</div></div>`;
+  }).join('');
+  const rows = RESLOT.map(([a,lbl])=>{
+    const ppl=state.people.filter(p=>(p.lead_area||[]).includes(a));
+    return ppl.length?`<div class="row"><span>${lbl}</span><span class="muted">${nm(ppl)}</span></div>`:'';
+  }).filter(Boolean).join('');
+  if(rows) html += `<div style="padding:12px 0"><div style="font-weight:700;color:#a23b3b">⚠ To re-slot (former roles)</div><div class="muted" style="margin:2px 0 6px">Tickets & massage fold into Overall Itinerary — confirm owners. Gift bags & activities placement TBD.</div>${rows}</div>`;
+  $('#roleList').innerHTML = html;
 }
 function renderSchedule(){
   $('#dayList').innerHTML = SCHEDULE.map(([d,t,items,star])=>
