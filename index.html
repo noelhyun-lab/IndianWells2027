@@ -47,11 +47,10 @@
   .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
   .pill.in{background:#e4f0e4;color:var(--ok)} .pill.maybe{background:#fbeede;color:var(--warn)}
   .pill.out{background:#f3e2e2;color:#a23b3b} .pill.pending{background:#eee;color:#777}
-  .pill.role{background:#eef0dc;color:var(--green)} .pill.now{background:#fde6d4;color:var(--terra-d)} .pill.end{background:#e7eef5;color:#3b6ea2}
+  .pill.now{background:#fde6d4;color:var(--terra-d)} .pill.end{background:#e7eef5;color:#3b6ea2}
   .btn{border:0;background:var(--terra);color:#fff;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer}
   .btn.ghost{background:#fff;color:var(--terra);border:1px solid var(--terra)}
   .btn.sm{padding:6px 10px;font-size:13px}
-  .btn[disabled]{opacity:.5;cursor:default}
   input,select,textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff}
   label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -59,20 +58,12 @@
   .day .d{font-weight:700;color:var(--terra-d)}
   .day .star{font-size:12px;color:var(--terra);font-weight:700}
   .item{font-size:14px;padding:3px 0}
-  .opt{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin:6px 0;cursor:pointer;background:#fff}
-  .opt.sel{border-color:var(--terra);background:#fff6ef}
-  .opt.full{opacity:.55;cursor:not-allowed}
-  .bar{height:8px;background:#eee;border-radius:999px;overflow:hidden;margin:5px 0 4px}
-  .bar>span{display:block;height:100%;background:var(--terra)}
   .muted{color:var(--muted);font-size:13px}
   .big{font-size:26px;font-weight:800;font-family:Georgia,serif}
   .pos{color:var(--ok)} .neg{color:#a23b3b}
   .center{text-align:center}
-  .note{background:#fff6ef;border:1px dashed var(--terra);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--terra-d);margin-bottom:14px}
   .err{background:#fbe9e7;border:1px solid #e0a99a;color:#a23b3b;border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0;display:none}
   .gate{max-width:520px;margin:40px auto;text-align:center}
-  details{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
-  summary{cursor:pointer;font-weight:600;color:var(--terra-d);font-size:14px}
   .tag{font-size:11px;color:var(--muted)}
   a.vault{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px dashed var(--line);text-decoration:none;color:var(--ink)}
   a.vault:last-child{border-bottom:0}
@@ -101,7 +92,7 @@
 <!-- Sign-in gate -->
 <div class="gate" id="gate">
   <div class="card" style="padding:14px">
-    <p class="muted" style="margin:0 0 12px">Sign in above with the Google account (or email link) tied to your invite to RSVP, vote, sign up, and track shared costs.</p>
+    <p class="muted" style="margin:0 0 12px">Sign in above with the Google account (or email link) tied to your invite to see the trip details.</p>
     <img src="flyer.jpg" alt="Indian Wells 2027 — Round Two" style="width:100%;border-radius:12px;display:block">
   </div>
 </div>
@@ -110,11 +101,8 @@
 <div id="app" class="hide">
 <nav id="nav">
   <button class="active" data-t="home">Home</button>
-  <button data-t="rsvp">RSVP</button>
-  <button data-t="wall">Comment Wall</button>
-  <button data-t="roster">Roster &amp; Roles</button>
+  <button data-t="roster">The Crew</button>
   <button data-t="schedule">Schedule</button>
-  <button data-t="polls">Polls &amp; Sign-ups</button>
   <button data-t="expenses">Expenses</button>
   <button data-t="vault">Info Vault</button>
 </nav>
@@ -122,68 +110,17 @@
   <section class="panel active" id="home">
     <img src="flyer.jpg" alt="Indian Wells 2027 — Round Two" style="width:100%;max-width:520px;border-radius:16px;box-shadow:var(--shadow);display:block;margin:0 auto 16px">
     <div class="card"><h2>Hi <span id="hiName"></span> 👋</h2>
-      <p class="muted">Two villas (4 bedrooms each), one day + one night session, a private chef night, spa days, and pool time in between. Head to <b>RSVP</b> to confirm. Everyone will get assigned something to help plan.</p></div>
+      <p class="muted">Two villas (4 bedrooms each), one day + one night session, a private chef night, spa days, and pool time in between. Everything for the trip lives here — check The Crew, the Schedule, and Expenses.</p></div>
     <div class="card"><h2>At a glance</h2><div id="glance"></div></div>
-  </section>
-
-  <section class="panel" id="rsvp">
-    <div class="card">
-      <h2>Your RSVP</h2>
-      <div class="grid2">
-        <div><label>Status</label><select id="r_status"><option value="in">I'm in! 🎉</option><option value="maybe">Maybe</option><option value="out">Can't make it</option><option value="pending">Haven't decided</option></select></div>
-        <div><label>Arrival day</label><input id="r_arr" type="text" placeholder="e.g. Wed Mar 3"></div>
-        <div><label>Departure day</label><input id="r_dep" type="text" placeholder="e.g. Mon Mar 8"></div>
-      </div>
-      <div class="note" style="margin:10px 0;font-size:15.5px;line-height:1.5">The big group activities run <b>Friday–Sunday</b>, but you're welcome to come as early as <b>Wednesday</b> and stay through <b>Monday</b>. You're not locked into these days — we just need a rough idea for planning.</div>
-      <label>Confirm your preferred email (for trip updates)</label><input id="r_cemail" type="email" placeholder="you@email.com">
-      <label>Phone number (for group texts)</label><input id="r_phone" type="tel" placeholder="(555) 123-4567">
-      <label>Dietary notes / allergies</label><input id="r_diet" type="text" placeholder="optional">
-      <label>Anything else (carpool, requests)</label><textarea id="r_notes" rows="2"></textarea>
-      <div style="margin-top:12px"><button class="btn" id="saveRsvp">Save my RSVP</button> <span id="rsvpMsg" class="muted"></span></div>
-      <label style="margin-top:16px">Add something to the group comment wall (optional)</label>
-      <div style="display:flex;gap:6px"><input id="wall_rsvp" placeholder="A note, idea, or hello for everyone" style="flex:1"><button class="btn ghost" type="button" onclick="postWall('wall_rsvp')">Post to wall</button></div>
-    </div>
-  </section>
-
-  <section class="panel" id="wall">
-    <div class="card"><h2>Comment Wall</h2><h3>Ideas, song requests, anything for the group</h3>
-      <div style="display:flex;gap:6px;margin-bottom:12px"><input id="wall_input" placeholder="Write something for the group" style="flex:1"><button class="btn sm" onclick="postWall('wall_input')">Post</button></div>
-      <div id="wallList"></div>
-    </div>
   </section>
 
   <section class="panel" id="roster"><div class="card"><h2>The Crew</h2><h3>By house · RSVP status</h3>
     <div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn sm" id="emailAll">✉️ Email everyone</button><button class="btn sm ghost" id="textAll">💬 Text everyone</button></div>
     <div id="rosterList"></div></div>
-    <div class="card"><h2>Planning Assignments</h2><h3>Who owns each planning category</h3><div id="roleList"></div></div>
   </section>
 
   <section class="panel" id="schedule">
     <div class="card"><h2>Day by day</h2><h3>Draft — shifts as tickets &amp; sessions firm up</h3><div id="dayList"></div></div>
-  </section>
-
-  <section class="panel" id="polls">
-    <div class="card"><h2>Polls</h2><h3>Group decisions — tap to vote</h3><div id="pollList"></div>
-      <details id="newPollWrap"><summary>+ New poll</summary>
-        <label>Question</label><input id="np_title" type="text">
-        <label>Area</label><select id="np_area"></select>
-        <label>Options (one per line)</label><textarea id="np_opts" rows="3" placeholder="Friday&#10;Saturday&#10;Sunday"></textarea>
-        <label>Deadline (optional)</label><input id="np_deadline" type="date">
-        <label style="display:flex;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="np_multi" style="width:auto"> Allow multiple selections (pick all that apply)</label>
-        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="np_showvoters" style="width:auto"> Show who voted for each option</label>
-        <div style="margin-top:10px"><button class="btn sm" id="np_save">Create poll</button></div>
-      </details>
-    </div>
-    <div class="card"><h2>Sign-ups</h2><h3>Pick your options</h3><div id="signupList"></div>
-      <details id="newSignupWrap"><summary>+ New sign-up</summary>
-        <label>Title</label><input id="ns_title" type="text" placeholder="e.g. Massage length">
-        <label>Area</label><select id="ns_area"></select>
-        <label>Options — one per line, add "| number" to cap slots</label>
-        <textarea id="ns_opts" rows="3" placeholder="50 min&#10;80 min | 6&#10;Skip"></textarea>
-        <label>Deadline (optional)</label><input id="ns_deadline" type="date">
-        <div style="margin-top:10px"><button class="btn sm" id="ns_save">Create sign-up</button></div>
-      </details>
-    </div>
   </section>
 
   <section class="panel" id="expenses">
@@ -223,28 +160,15 @@ const SUPABASE_URL = "https://uisdlyvtottjtlrdzede.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ENE9dQgbPIKtpF4r1hNp1w_IGsebhBd";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2027'} });
 
-const AREAS = [["itinerary","Overall Itinerary"],["tennis","Tennis Paradise"],["cuisine","Cuisine"],["grocbev","Groceries & Beverages"],["giftbags","Gift Bags"],["spirit","Spirit"]];
-const CATEGORIES = [
-  {label:'Overall Itinerary', desc:'House & massage coordination — the master plan for the week.', status:'confirmed', from:['itinerary']},
-  {label:'Tennis Paradise', desc:'Tennis, tickets & activities — day/night sessions, grounds and outings.', status:'confirmed', from:['tennis']},
-  {label:'Cuisine', desc:'Food, private chef & dining.', status:'confirmed', from:['cuisine']},
-  {label:'Groceries & Beverages', desc:'One combined category — groceries, supplies & drinks.', status:'confirmed', from:['grocbev']},
-  {label:'Gift Bags', desc:'Design, source & assemble the gift bags.', status:'confirmed', from:['giftbags']},
-  {label:'Spirit', desc:'Camaraderie & games.', status:'confirmed', from:['spirit']},
-];
-const HOUSE_NAMES = {1:'Casa Del Sol', 2:'Bel Air'};
-
 const SCHEDULE = [
   ["Wed · Mar 3","Arrivals",["Check into the two villas, settle in","Welcome dinner / poolside drinks"],false],
   ["Thu · Mar 4","Pool & Spa + Optional Tennis",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Optional: morning massages at the villa","Casual dinner in"],false],
-  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session","★ Private chef dinner at the villa (after the session)"],true],
+  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session","★ Private chef dinner at Bel Air (after the session)"],true],
   ["Sat · Mar 6","Relaxed Day + Night Session",["Relaxed day / pool","★ Night session (gates 4:30, ~6pm)"],true],
-  ["Sun · Mar 7","Sunday Brunch + Gift Bags",["Optional: Sunday-morning massages at the villa","★ Group Sunday brunch (~12:30–1pm)","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
+  ["Sun · Mar 7","Sunday Brunch + Gift Bags",["Optional: Sunday-morning massages at the villa","★ Group Sunday brunch at Casa Del Sol (~12:30–1pm)","Open afternoon / pool","Gift bag exchange","Group dinner out"],true],
   ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
 ];
 
-const STAGED_ROLLOUT = true;          // set to false to reveal all tabs to everyone
-const MEMBER_TABS = ['home','rsvp','wall','polls'];  // tabs non-organizers see during staged rollout
 let state = { me:null, people:[] };
 const $ = s => document.querySelector(s);
 const showErr = m => { const e=$('#err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',6000); };
@@ -253,7 +177,7 @@ const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'
 // ---------- AUTH ----------
 $('#signinBtn').onclick = async () => {
   const { error } = await supa.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.href.split('#')[0] }});
-  if(error) showErr("Sign-in error: "+error.message+" — Google sign-in may not be configured yet.");
+  if(error) showErr("Sign-in error: "+error.message);
 };
 const emailBtn=$('#emailBtn');
 if(emailBtn) emailBtn.onclick = async () => {
@@ -286,61 +210,27 @@ supa.auth.onAuthStateChange((_e, s)=>{ if(s && $('#app').classList.contains('hid
 
 // ---------- LOAD ----------
 async function loadAll(){
-  const [{data:people},{data:polls},{data:signups},{data:expenses},{data:vault},{data:wall}] = await Promise.all([
+  const [{data:people},{data:expenses},{data:vault}] = await Promise.all([
     supa.from('people').select('*').order('full_name'),
-    supa.from('polls').select('*, poll_options(*), poll_votes(*), poll_comments(*)').order('created_at'),
-    supa.from('signups').select('*, signup_options(*), signup_choices(*)').order('created_at'),
     supa.from('expenses').select('*, expense_shares(*)').order('created_at'),
     supa.from('vault_items').select('*').order('sort'),
-    supa.from('wall_comments').select('*').order('created_at'),
   ]);
   state.people = people||[];
-  renderRsvp(); renderGlance(polls); renderRoster(); renderRoles(); renderSchedule();
-  renderPolls(polls||[]); renderSignups(signups||[]); renderExpenses(expenses||[]); renderVault(vault||[]); renderWall(wall||[]);
+  renderGlance(); renderRoster(); renderSchedule(); renderExpenses(expenses||[]); renderVault(vault||[]);
   setupPermissions();
 }
-function renderWall(items){
-  const list=(items||[]).slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  const html=list.map(c=>`<div class="row"><span><b>${esc(nameOf(c.author))}</b><br><span class="muted">${esc(c.body)}</span></span>${(c.author===state.me.id||state.me.is_organizer)?`<a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delWall('${c.id}')">×</a>`:''}</div>`).join('') || '<p class="muted">No posts yet — be the first.</p>';
-  const el=$('#wallList'); if(el) el.innerHTML=html;
-}
-async function postWall(inputId){
-  const el=document.getElementById(inputId); const body=(el.value||'').trim();
-  if(!body) return;
-  const { error } = await supa.from('wall_comments').insert({ author:state.me.id, body });
-  if(error){ showErr(error.message); return; }
-  el.value=''; await loadAll();
-}
-async function delWall(id){ await supa.from('wall_comments').delete().eq('id',id); await loadAll(); }
 const nameOf = id => (state.people.find(p=>p.id===id)||{}).full_name || '—';
 const goingPeople = () => state.people.filter(p=>p.rsvp_status==='in');
-
-// ---------- RSVP ----------
-function renderRsvp(){
-  const m=state.me;
-  $('#r_status').value=m.rsvp_status||'pending';
-  $('#r_arr').value=m.arrival_day||''; $('#r_dep').value=m.departure_day||''; $('#r_diet').value=m.dietary||''; $('#r_notes').value=m.notes||'';
-  $('#r_cemail').value=m.contact_email||m.email||''; $('#r_phone').value=m.phone||'';
-}
-$('#saveRsvp').onclick = async () => {
-  const upd={ rsvp_status:$('#r_status').value, arrival_day:$('#r_arr').value, departure_day:$('#r_dep').value, dietary:$('#r_diet').value, contact_email:$('#r_cemail').value, phone:$('#r_phone').value, notes:$('#r_notes').value };
-  const { error } = await supa.from('people').update(upd).eq('id', state.me.id);
-  if(error){ showErr(error.message); return; }
-  Object.assign(state.me, upd); $('#rsvpMsg').textContent='Saved ✓'; setTimeout(()=>$('#rsvpMsg').textContent='',2000);
-  await loadAll();
-};
-function renderGlance(polls){
-  const going=state.people.filter(p=>p.rsvp_status==='in').length;
-  const open=(polls||[]).filter(p=>p.status==='open').length;
-  const days=Math.max(0,Math.round((new Date('2027-03-03')-new Date())/864e5));
-  $('#glance').innerHTML =
-    row('Confirmed so far', going+' of '+state.people.length)+
-    row('Days to trip', '~'+days)+
-    row('Open polls', open);
-}
+const canEdit = r => state.me.is_organizer || r.created_by===state.me.id;
 const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
 
-// ---------- ROSTER / ROLES / SCHEDULE ----------
+function renderGlance(){
+  const going=state.people.filter(p=>p.rsvp_status==='in').length;
+  const days=Math.max(0,Math.round((new Date('2027-03-03')-new Date())/864e5));
+  $('#glance').innerHTML = row('Confirmed so far', going+' of '+state.people.length)+row('Days to trip', '~'+days);
+}
+
+// ---------- THE CREW ----------
 function renderRoster(){
   const card = p => {
     const s=p.rsvp_status;
@@ -366,121 +256,14 @@ function renderRoster(){
   const phones=state.people.map(p=>p.phone).filter(Boolean);
   const eb=$('#emailAll'), tb=$('#textAll');
   if(eb) eb.onclick=()=>{ location.href='mailto:?bcc='+encodeURIComponent(emails.join(',')); };
-  if(tb) tb.onclick=()=>{ if(!phones.length){ showErr('No phone numbers yet — they fill in as people RSVP.'); return; } location.href='sms:'+encodeURIComponent(phones.join(',')); };
+  if(tb) tb.onclick=()=>{ if(!phones.length){ showErr('No phone numbers yet.'); return; } location.href='sms:'+encodeURIComponent(phones.join(',')); };
 }
-function renderRoles(){
-  const first = p => esc(p.full_name.split(' ')[0]);
-  const namesFor = arr => arr.length ? arr.map(first).join(', ') : '<span class="muted">—</span>';
-  const tag = c => c.status==='confirmed' ? '<span class="pill in" style="font-size:10px">Confirmed</span>' : c.status==='suggested' ? '<span class="pill maybe" style="font-size:10px">Suggested</span>' : '<span class="pill" style="font-size:10px;background:#eee;color:#777">Open</span>';
-  const g = 'display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px dashed var(--line);align-items:start';
-  let html = `<div style="${g};font-weight:700;color:var(--terra-d)"><div>Category</div><div>🏠 Casa Del Sol</div><div>🏠 Bel Air</div></div>`;
-  html += CATEGORIES.map(c=>{
-    const inCat = p => (p.lead_area||[]).some(a=>c.from.includes(a));
-    const casa = state.people.filter(p=>inCat(p)&&p.house===1);
-    const bel = state.people.filter(p=>inCat(p)&&p.house===2);
-    return `<div style="${g}"><div><b>${c.label}</b> ${tag(c)}<div class="muted" style="font-size:12px;margin-top:2px">${esc(c.desc)}</div></div><div>${namesFor(casa)}</div><div>${namesFor(bel)}</div></div>`;
-  }).join('');
-  const unassigned = state.people.filter(p=>!(p.lead_area&&p.lead_area.length)&&!p.is_organizer);
-  html += `<div style="padding:14px 0 4px"><div style="font-weight:700;color:#a23b3b">⚠ Unassigned</div><div class="muted" style="margin:2px 0 6px">Not yet in a category.</div><div class="row"><span>${unassigned.length?esc(unassigned.map(p=>p.full_name.split(' ')[0]+(p.house?` (${HOUSE_NAMES[p.house]})`:'')).join(', ')):'Everyone is assigned 🎉'}</span></div></div>`;
-  $('#roleList').innerHTML = html;
-}
+
 function renderSchedule(){
   $('#dayList').innerHTML = SCHEDULE.map(([d,t,items,star])=>
     `<div class="day"><div class="d">${d} ${star?'<span class="star">★ anchor</span>':''}</div><div style="font-weight:600;margin:2px 0">${t}</div>${items.map(i=>`<div class="item">${esc(i)}</div>`).join('')}</div>`
   ).join('');
 }
-
-// ---------- POLLS ----------
-function renderPolls(polls){
-  if(!polls.length){ $('#pollList').innerHTML='<p class="muted">No polls yet.</p>'; return; }
-  $('#pollList').innerHTML = polls.map(p=>{
-    const opts=(p.poll_options||[]).sort((a,b)=>a.sort-b.sort);
-    const votes=p.poll_votes||[];
-    const tot=votes.length||1;
-    const mine=votes.filter(v=>v.voter===state.me.id).map(v=>v.option_id);
-    const dead=p.deadline?` · by ${new Date(p.deadline).toLocaleDateString()}`:'';
-    const closed=p.status!=='open';
-    const comments=(p.poll_comments||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-    const cList = comments.map(c=>`<div class="muted" style="padding:3px 0"><b>${esc(nameOf(c.author))}</b>: ${esc(c.body)}${(c.author===state.me.id||state.me.is_organizer)?` <a style="cursor:pointer;color:#a23b3b" onclick="delComment('${c.id}')">×</a>`:''}</div>`).join('') || '<span class="muted">No comments yet.</span>';
-    const cBlock = `<details style="margin-top:8px"><summary>💬 Comments (${comments.length})</summary><div style="padding:6px 0">${cList}</div><div style="display:flex;gap:6px;margin-top:4px"><input id="cmt-${p.id}" placeholder="Add a comment" style="flex:1"><button class="btn sm" onclick="addComment('${p.id}')">Post</button></div></details>`;
-    return `<div style="margin-bottom:16px;border-bottom:1px dashed var(--line);padding-bottom:12px"><b>${esc(p.title)}</b> <span class="tag">${esc(areaLabel(p.area))}${p.allow_multiple?' · pick all that apply':''}${dead}${closed?' · closed':''}</span>`+
-      opts.map(o=>{ const ov=votes.filter(v=>v.option_id===o.id); const c=ov.length; const pct=Math.round(c/tot*100);
-        const voters=(p.show_voters&&c)?`<div class="muted" style="font-size:12px;margin:-2px 0 6px">${ov.map(v=>esc(nameOf(v.voter))).join(', ')}</div>`:'';
-        return `<div class="opt ${mine.includes(o.id)?'sel':''}" ${closed?'':`onclick="vote('${p.id}','${o.id}',${p.allow_multiple})"`}><span>${esc(o.label)}</span><span class="muted">${c} · ${pct}%</span></div><div class="bar"><span style="width:${pct}%"></span></div>${voters}`;
-      }).join('')+
-      (canEdit(p)?` <a class="tag" style="cursor:pointer;color:var(--terra)" onclick="togglePoll('${p.id}','${p.status}')">${closed?'reopen':'close'}</a> · <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delPoll('${p.id}')">delete</a>`:'')+
-      cBlock+
-    `</div>`;
-  }).join('');
-}
-async function addComment(pollId){
-  const el=document.getElementById('cmt-'+pollId); const body=(el.value||'').trim();
-  if(!body) return;
-  const { error } = await supa.from('poll_comments').insert({ poll_id:pollId, author:state.me.id, body });
-  if(error){ showErr(error.message); return; }
-  await loadAll();
-}
-async function delComment(id){ await supa.from('poll_comments').delete().eq('id',id); await loadAll(); }
-const areaLabel = a => (AREAS.find(x=>x[0]===a)||[null,'General'])[1];
-const canEdit = r => state.me.is_organizer || r.created_by===state.me.id;
-async function vote(pollId, optId, multi){
-  if(!multi){ await supa.from('poll_votes').delete().eq('poll_id',pollId).eq('voter',state.me.id); }
-  const { data:existing } = await supa.from('poll_votes').select('id').eq('poll_id',pollId).eq('option_id',optId).eq('voter',state.me.id).maybeSingle();
-  if(existing){ await supa.from('poll_votes').delete().eq('id',existing.id); }
-  else { const { error } = await supa.from('poll_votes').insert({ poll_id:pollId, option_id:optId, voter:state.me.id }); if(error) showErr(error.message); }
-  await loadAll();
-}
-async function togglePoll(id,st){ await supa.from('polls').update({status: st==='open'?'closed':'open'}).eq('id',id); await loadAll(); }
-async function delPoll(id){ if(confirm('Delete this poll?')){ await supa.from('polls').delete().eq('id',id); await loadAll(); } }
-$('#np_save').onclick = async () => {
-  const title=$('#np_title').value.trim(); const area=$('#np_area').value||null;
-  const opts=$('#np_opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(!title||opts.length<2){ showErr('Add a question and at least 2 options.'); return; }
-  const dl=$('#np_deadline').value? new Date($('#np_deadline').value).toISOString():null;
-  const { data:poll, error } = await supa.from('polls').insert({title,area,deadline:dl,created_by:state.me.id,allow_multiple:$('#np_multi').checked,show_voters:$('#np_showvoters').checked}).select().single();
-  if(error){ showErr(error.message); return; }
-  await supa.from('poll_options').insert(opts.map((label,i)=>({poll_id:poll.id,label,sort:i})));
-  $('#np_title').value='';$('#np_opts').value='';$('#np_deadline').value='';$('#np_multi').checked=false;$('#np_showvoters').checked=false; await loadAll();
-};
-
-// ---------- SIGN-UPS ----------
-function renderSignups(signups){
-  if(!signups.length){ $('#signupList').innerHTML='<p class="muted">No sign-ups yet.</p>'; return; }
-  $('#signupList').innerHTML = signups.map(s=>{
-    const opts=(s.signup_options||[]).sort((a,b)=>a.sort-b.sort);
-    const choices=s.signup_choices||[];
-    const mine=choices.find(c=>c.person===state.me.id);
-    const dead=s.deadline?` · by ${new Date(s.deadline).toLocaleDateString()}`:'';
-    const closed=s.status!=='open' || (s.deadline && new Date()>new Date(s.deadline));
-    return `<div style="margin-bottom:16px"><b>${esc(s.title)}</b> <span class="tag">${esc(areaLabel(s.area))}${dead}${closed?' · closed':''}</span>`+
-      opts.map(o=>{ const c=choices.filter(x=>x.option_id===o.id).length;
-        const full=o.capacity!=null && c>=o.capacity && (!mine||mine.option_id!==o.id);
-        const cap=o.capacity!=null?` ${c}/${o.capacity}`:` ${c}`;
-        return `<div class="opt ${mine&&mine.option_id===o.id?'sel':''} ${full?'full':''}" ${closed||full?'':`onclick="choose('${s.id}','${o.id}')"`}><span>${esc(o.label)}</span><span class="muted">${full?'full':cap}</span></div>`;
-      }).join('')+
-      (canEdit(s)?` <a class="tag" style="cursor:pointer;color:var(--terra)" onclick="toggleSignup('${s.id}','${s.status}')">${s.status==='open'?'close':'reopen'}</a> · <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delSignup('${s.id}')">delete</a>`:'')+
-    `</div>`;
-  }).join('');
-}
-async function choose(signupId, optId){
-  await supa.from('signup_choices').delete().eq('signup_id',signupId).eq('person',state.me.id);
-  const { error } = await supa.from('signup_choices').insert({ signup_id:signupId, option_id:optId, person:state.me.id });
-  if(error) showErr(error.message);
-  await loadAll();
-}
-async function toggleSignup(id,st){ await supa.from('signups').update({status: st==='open'?'closed':'open'}).eq('id',id); await loadAll(); }
-async function delSignup(id){ if(confirm('Delete this sign-up?')){ await supa.from('signups').delete().eq('id',id); await loadAll(); } }
-$('#ns_save').onclick = async () => {
-  const title=$('#ns_title').value.trim(); const area=$('#ns_area').value||null;
-  const lines=$('#ns_opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  if(!title||lines.length<2){ showErr('Add a title and at least 2 options.'); return; }
-  const dl=$('#ns_deadline').value? new Date($('#ns_deadline').value).toISOString():null;
-  const { data:su, error } = await supa.from('signups').insert({title,area,deadline:dl,created_by:state.me.id}).select().single();
-  if(error){ showErr(error.message); return; }
-  const opts=lines.map((l,i)=>{ const [label,cap]=l.split('|').map(x=>x.trim()); return {signup_id:su.id,label,capacity:cap?parseInt(cap):null,sort:i}; });
-  await supa.from('signup_options').insert(opts);
-  $('#ns_title').value='';$('#ns_opts').value='';$('#ns_deadline').value=''; await loadAll();
-};
 
 // ---------- EXPENSES ----------
 function renderExpenses(expenses){
@@ -490,7 +273,6 @@ function renderExpenses(expenses){
     `<div class="row"><span><b>${esc(e.description)}</b><br><span class="muted">Paid by ${esc(nameOf(e.paid_by))} · ${e.split_mode==='everyone'?'split among everyone going':'custom split'}</span></span>
      <span style="text-align:right">$${Number(e.amount).toLocaleString(undefined,{minimumFractionDigits:2})}<br><span class="pill ${e.settle}">${e.settle==='now'?'split now':'at end'}</span>${canEdit(e)?` <a class="tag" style="cursor:pointer;color:#a23b3b" onclick="delExp('${e.id}')">×</a>`:''}</span></div>`
   ).join('');
-  // balances
   const bal={}; state.people.forEach(p=>bal[p.id]=0);
   expenses.forEach(e=>{
     let parts;
@@ -532,27 +314,12 @@ function renderVault(items){
   ).join('') || '<p class="muted">Empty.</p>';
 }
 
-// ---------- PERMISSIONS / FORMS ----------
+// ---------- PERMISSIONS ----------
 function setupPermissions(){
   const m=state.me; const isLead=m.is_organizer || (m.lead_area||[]).length>0;
-  const myAreas = m.is_organizer ? AREAS : AREAS.filter(a=>(m.lead_area||[]).includes(a[0]));
-  const optsHtml = (m.is_organizer?'<option value="">General</option>':'') + myAreas.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('');
-  $('#np_area').innerHTML=optsHtml; $('#ns_area').innerHTML=optsHtml;
-  $('#newPollWrap').classList.toggle('hide', !isLead);
-  $('#newSignupWrap').classList.toggle('hide', !isLead);
   $('#addExpenseCard').classList.toggle('hide', !isLead);
   $('#e_paid').innerHTML = state.people.map(p=>`<option value="${p.id}" ${p.id===m.id?'selected':''}>${esc(p.full_name)}</option>`).join('');
   $('#e_people').innerHTML = state.people.map(p=>`<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 0 0;font-size:13px"><input type="checkbox" value="${p.id}" style="width:auto"> ${esc(p.full_name.split(' ')[0])}</label>`).join('');
-  // Staged rollout: members see only Home + RSVP for now; organizer keeps full access.
-  if(STAGED_ROLLOUT && !m.is_organizer){
-    document.querySelectorAll('nav button').forEach(b=>{ if(!MEMBER_TABS.includes(b.dataset.t)) b.classList.add('hide'); });
-    const active=document.querySelector('.panel.active');
-    if(active && !MEMBER_TABS.includes(active.id)){
-      document.querySelectorAll('nav button,.panel').forEach(x=>x.classList.remove('active'));
-      document.querySelector('nav button[data-t="home"]').classList.add('active');
-      document.getElementById('home').classList.add('active');
-    }
-  }
 }
 
 // ---------- NAV ----------
