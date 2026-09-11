@@ -241,14 +241,15 @@ function renderRoster(){
     if(contact.length) lines.push(contact.join(' · '));
     if(p.arrival_day||p.departure_day) lines.push('📅 '+esc(p.arrival_day||'?')+' → '+esc(p.departure_day||'?'));
     if(p.dietary) lines.push('🍽 '+esc(p.dietary));
+    if(p.notes) lines.push('📝 '+esc(p.notes));
     const sub=lines.length?`<br><span class="muted">${lines.join('<br>')}</span>`:'';
     return `<div class="row" style="align-items:flex-start"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
   };
-  const houseCol=(h,label)=>{
+  const houseCol=(h,label,addr)=>{
     const members=state.people.filter(p=>p.house===h);
-    return `<div><h3 style="margin:0 0 4px;font-size:16px;color:var(--terra-d)">🏠 ${label} · ${members.length}</h3>${members.map(card).join('')||'<p class="muted">—</p>'}</div>`;
+    return `<div><h3 style="margin:0 0 1px;font-size:16px;color:var(--terra-d)">🏠 ${label} · ${members.length}</h3><div class="muted" style="margin:0 0 8px">${addr}</div>${members.map(card).join('')||'<p class="muted">—</p>'}</div>`;
   };
-  let html=`<div class="grid2" style="align-items:start">${houseCol(1,'Casa Del Sol')}${houseCol(2,'Bel Air')}</div>`;
+  let html=`<div class="grid2" style="align-items:start">${houseCol(1,'Casa Del Sol','77137 Casa del Sol, La Quinta')}${houseCol(2,'Bel Air','72870 Bel Air Road, Palm Desert')}</div>`;
   const noHouse=state.people.filter(p=>!p.house);
   if(noHouse.length) html += `<h3 style="margin:16px 0 4px;font-size:16px;color:var(--muted)">Not assigned to a house</h3>`+noHouse.map(card).join('');
   $('#rosterList').innerHTML = html;
