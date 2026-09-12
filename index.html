@@ -158,7 +158,7 @@ const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2
 const SCHEDULE = [
   ["Wed · Mar 3","Arrivals",["🏠 Casa Del Sol — <a href=\"https://www.google.com/maps/place/77137+Casa+del+Sol,+La+Quinta+CA\" target=\"_blank\" style=\"color:var(--terra)\">77137 Casa del Sol, La Quinta</a> · 4 bedrooms","🏠 Bel Air — <a href=\"https://www.google.com/maps/place/72870+Bel+Air+Rd,+Palm+Desert+CA\" target=\"_blank\" style=\"color:var(--terra)\">72870 Bel Air Road, Palm Desert</a> · 4 bedrooms",],false],
   ["Thu · Mar 4","Arrivals + Pool",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Casual dinner in"],false],
-  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session","★ Private chef dinner at Bel Air (after the session)"],true],
+  ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session — Elizabeth Woo is in charge of the group tickets","★ Private chef dinner at Bel Air (after the session)"],true],
   ["Sat · Mar 6","Relaxed Day + Night Session",["Relaxed day / pool","★ Night session (gates 4:30, ~6pm) — potential Nobu experience"],true],
   ["Sun · Mar 7","Sunday Brunch",["Optional: Sunday-morning massages at the villa","★ Group Sunday brunch at Casa Del Sol (~12:30–1pm)","Open afternoon / pool"],true],
   ["Mon · Mar 8","Departures",["Coffee & goodbyes","Check out"],false],
@@ -226,12 +226,14 @@ function renderRoster(){
     const sub=lines.length?`<br><span class="muted">${lines.join('<br>')}</span>`:'';
     return `<div class="row" style="align-items:flex-start"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
   };
+  const arrKey=p=>{ const m=(p.arrival_day||'').match(/mar\s*(\d+)/i); return m?parseInt(m[1],10):99; };
+  const byArrival=(a,b)=>arrKey(a)-arrKey(b)||(a.full_name||'').localeCompare(b.full_name||'');
   const houseCol=(h,label,addr,maps)=>{
-    const members=state.people.filter(p=>p.house===h);
+    const members=state.people.filter(p=>p.house===h).sort(byArrival);
     return `<div><h3 style="margin:0 0 1px;font-size:16px;color:var(--terra-d)">🏠 ${label} · ${members.length}</h3><div class="muted" style="margin:0 0 8px"><a href="${maps}" target="_blank" style="color:var(--terra)">${addr}</a> · 4 bedrooms</div>${members.map(card).join('')||'<p class="muted">—</p>'}</div>`;
   };
   let html=`<div class="grid2" style="align-items:start">${houseCol(1,'Casa Del Sol','77137 Casa del Sol, La Quinta','https://www.google.com/maps/place/77137+Casa+del+Sol,+La+Quinta+CA')}${houseCol(2,'Bel Air','72870 Bel Air Road, Palm Desert','https://www.google.com/maps/place/72870+Bel+Air+Rd,+Palm+Desert+CA')}</div>`;
-  const noHouse=state.people.filter(p=>!p.house);
+  const noHouse=state.people.filter(p=>!p.house).sort(byArrival);
   if(noHouse.length) html += `<h3 style="margin:16px 0 4px;font-size:16px;color:var(--muted)">Not assigned to a house</h3>`+noHouse.map(card).join('');
   $('#rosterList').innerHTML = html;
   const emails=state.people.map(p=>p.contact_email||p.email).filter(Boolean);
