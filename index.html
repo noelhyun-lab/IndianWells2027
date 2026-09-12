@@ -75,24 +75,20 @@
   <div class="kicker">BNP PARIBAS OPEN</div>
   <h1>Indian Wells 2027</h1>
   <div class="sub">March 3–8, 2027 · Girls Trip Hub</div>
-  <div id="authArea">
-    <div class="signin" id="signinBtn"><span class="g"></span><span>Sign in with Google</span></div>
-    <div style="margin-top:8px;font-size:12px;color:var(--muted)">— or —</div>
-    <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
-      <input id="emailInput" type="email" placeholder="you@gmail.com" style="max-width:220px">
-      <button class="btn sm ghost" id="emailBtn">Email me a sign-in link</button>
-    </div>
-    <div id="authMsg" class="muted" style="margin-top:6px"></div>
-  </div>
   <div class="who" id="who"></div>
 </header>
 
 <div class="err" id="err"></div>
 
-<!-- Sign-in gate -->
+<!-- Password gate -->
 <div class="gate" id="gate">
   <div class="card" style="padding:14px">
-    <p class="muted" style="margin:0 0 12px">Sign in above with the Google account (or email link) tied to your invite to see the trip details.</p>
+    <p class="muted" style="margin:0 0 12px">Enter the group password to see the trip details.</p>
+    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+      <input id="pwInput" type="password" placeholder="Group password" style="max-width:240px" autocomplete="off">
+      <button class="btn sm" id="pwBtn">Enter</button>
+    </div>
+    <div id="pwMsg" class="muted" style="margin-bottom:12px"></div>
     <img src="flyer.jpg" alt="Indian Wells 2027 — Round Two" style="width:100%;border-radius:12px;display:block">
   </div>
 </div>
@@ -124,8 +120,7 @@
   </section>
 
   <section class="panel" id="expenses">
-    <div class="card center"><h3 style="margin-bottom:2px">Your balance</h3>
-      <div class="big" id="myBal">—</div>
+    <div class="card center"><h3 style="margin-bottom:2px">Trip expenses</h3>
       <div class="muted">Settle up at the end of the trip · big items can be split as we go</div></div>
     <div class="card" id="addExpenseCard">
       <h2>Add an expense</h2>
@@ -161,7 +156,7 @@ const SUPABASE_KEY = "sb_publishable_ENE9dQgbPIKtpF4r1hNp1w_IGsebhBd";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db:{schema:'iw2027'} });
 
 const SCHEDULE = [
-  ["Wed · Mar 3","Arrivals",["🏠 Casa Del Sol — 77137 Casa del Sol, La Quinta","🏠 Bel Air — 72870 Bel Air Road, Palm Desert","Check into the villas & settle in","Welcome dinner / poolside drinks"],false],
+  ["Wed · Mar 3","Arrivals",["🏠 Casa Del Sol — <a href=\"https://www.google.com/maps/place/77137+Casa+del+Sol,+La+Quinta+CA\" target=\"_blank\" style=\"color:var(--terra)\">77137 Casa del Sol, La Quinta</a> · 4 bedrooms","🏠 Bel Air — <a href=\"https://www.google.com/maps/place/72870+Bel+Air+Rd,+Palm+Desert+CA\" target=\"_blank\" style=\"color:var(--terra)\">72870 Bel Air Road, Palm Desert</a> · 4 bedrooms","Check into the villas & settle in","Welcome dinner / poolside drinks"],false],
   ["Thu · Mar 4","Pool & Spa + Optional Tennis",["Pool time & settling in","Optional: head to the grounds to watch tennis (grounds pass)","Optional: morning massages at the villa","Casual dinner in"],false],
   ["Fri · Mar 5","Day Session + Chef Dinner",["★ Day session","★ Private chef dinner at Bel Air (after the session)"],true],
   ["Sat · Mar 6","Relaxed Day + Night Session",["Relaxed day / pool","★ Night session (gates 4:30, ~6pm)"],true],
@@ -174,39 +169,25 @@ const $ = s => document.querySelector(s);
 const showErr = m => { const e=$('#err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',6000); };
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-// ---------- AUTH ----------
-$('#signinBtn').onclick = async () => {
-  const { error } = await supa.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.href.split('#')[0] }});
-  if(error) showErr("Sign-in error: "+error.message);
-};
-const emailBtn=$('#emailBtn');
-if(emailBtn) emailBtn.onclick = async () => {
-  const email=($('#emailInput').value||'').trim();
-  if(!email){ showErr('Enter your email first.'); return; }
-  const { error } = await supa.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split('#')[0] }});
-  if(error){ showErr(error.message); return; }
-  $('#authMsg').textContent='Check your email for the sign-in link ✓';
-};
-async function boot(){
-  const { data:{ session } } = await supa.auth.getSession();
-  if(!session){ $('#gate').classList.remove('hide'); return; }
-  await supa.rpc('claim_membership');
-  const { data: me, error } = await supa.from('people').select('*').eq('user_id', session.user.id).maybeSingle();
-  if(error){ showErr(error.message); }
-  if(!me){
-    $('#gate').classList.remove('hide');
-    $('#gate').innerHTML = '<div class="card"><h2>Not on the list yet</h2><p class="muted">'+esc(session.user.email)+' isn\'t on the invite list. Ask Noel to add you, then sign in again.</p><button class="btn ghost" onclick="signOut()">Sign out</button></div>';
-    return;
-  }
-  state.me = me;
-  $('#authArea').innerHTML = '';
-  $('#who').innerHTML = 'Signed in as '+esc(me.full_name)+' · <a onclick="signOut()">Sign out</a>';
+// ---------- ACCESS (shared group password) ----------
+const PASSWORD = 'tennisislife2027';
+function enterApp(){
   $('#gate').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#hiName').textContent = (me.full_name||'').split(' ')[0];
-  await loadAll();
+  $('#hiName').textContent = 'there';
+  loadAll();
 }
-async function signOut(){ await supa.auth.signOut(); location.reload(); }
-supa.auth.onAuthStateChange((_e, s)=>{ if(s && $('#app').classList.contains('hide')) boot(); });
+function tryPassword(){
+  const v=($('#pwInput')?.value||'').trim();
+  if(v===PASSWORD){ try{ localStorage.setItem('iw_ok','1'); }catch(e){} enterApp(); }
+  else { $('#pwMsg').textContent='That password isn\'t right — try again.'; }
+}
+function boot(){
+  let ok=false; try{ ok=localStorage.getItem('iw_ok')==='1'; }catch(e){}
+  if(ok){ enterApp(); return; }
+  $('#gate').classList.remove('hide');
+  const b=$('#pwBtn'); if(b) b.onclick=tryPassword;
+  const i=$('#pwInput'); if(i) i.onkeydown=e=>{ if(e.key==='Enter') tryPassword(); };
+}
 
 // ---------- LOAD ----------
 async function loadAll(){
@@ -221,7 +202,7 @@ async function loadAll(){
 }
 const nameOf = id => (state.people.find(p=>p.id===id)||{}).full_name || '—';
 const goingPeople = () => state.people.filter(p=>p.rsvp_status==='in');
-const canEdit = r => state.me.is_organizer || r.created_by===state.me.id;
+const canEdit = r => true;
 const row=(a,b)=>`<div class="row"><span>${a}</span><b>${b}</b></div>`;
 
 function renderGlance(){
@@ -245,11 +226,11 @@ function renderRoster(){
     const sub=lines.length?`<br><span class="muted">${lines.join('<br>')}</span>`:'';
     return `<div class="row" style="align-items:flex-start"><span><b>${esc(p.full_name)}</b>${sub}</span><span class="pill ${s}">${({in:'In',maybe:'Maybe',out:'Out',pending:'Pending'})[s]}</span></div>`;
   };
-  const houseCol=(h,label,addr)=>{
+  const houseCol=(h,label,addr,maps)=>{
     const members=state.people.filter(p=>p.house===h);
-    return `<div><h3 style="margin:0 0 1px;font-size:16px;color:var(--terra-d)">🏠 ${label} · ${members.length}</h3><div class="muted" style="margin:0 0 8px">${addr}</div>${members.map(card).join('')||'<p class="muted">—</p>'}</div>`;
+    return `<div><h3 style="margin:0 0 1px;font-size:16px;color:var(--terra-d)">🏠 ${label} · ${members.length}</h3><div class="muted" style="margin:0 0 8px"><a href="${maps}" target="_blank" style="color:var(--terra)">${addr}</a> · 4 bedrooms</div>${members.map(card).join('')||'<p class="muted">—</p>'}</div>`;
   };
-  let html=`<div class="grid2" style="align-items:start">${houseCol(1,'Casa Del Sol','77137 Casa del Sol, La Quinta')}${houseCol(2,'Bel Air','72870 Bel Air Road, Palm Desert')}</div>`;
+  let html=`<div class="grid2" style="align-items:start">${houseCol(1,'Casa Del Sol','77137 Casa del Sol, La Quinta','https://www.google.com/maps/place/77137+Casa+del+Sol,+La+Quinta+CA')}${houseCol(2,'Bel Air','72870 Bel Air Road, Palm Desert','https://www.google.com/maps/place/72870+Bel+Air+Rd,+Palm+Desert+CA')}</div>`;
   const noHouse=state.people.filter(p=>!p.house);
   if(noHouse.length) html += `<h3 style="margin:16px 0 4px;font-size:16px;color:var(--muted)">Not assigned to a house</h3>`+noHouse.map(card).join('');
   $('#rosterList').innerHTML = html;
@@ -262,7 +243,7 @@ function renderRoster(){
 
 function renderSchedule(){
   $('#dayList').innerHTML = SCHEDULE.map(([d,t,items,star])=>
-    `<div class="day"><div class="d">${d} ${star?'<span class="star">★ anchor</span>':''}</div><div style="font-weight:600;margin:2px 0">${t}</div>${items.map(i=>`<div class="item">${esc(i)}</div>`).join('')}</div>`
+    `<div class="day"><div class="d">${d} ${star?'<span class="star">★ anchor</span>':''}</div><div style="font-weight:600;margin:2px 0">${t}</div>${items.map(i=>`<div class="item">${i}</div>`).join('')}</div>`
   ).join('');
 }
 
@@ -283,8 +264,6 @@ function renderExpenses(expenses){
     parts.forEach(pt=>{ if(bal[pt.id]!=null) bal[pt.id]-= Number(e.amount)*pt.w/tw; });
     if(bal[e.paid_by]!=null) bal[e.paid_by]+= Number(e.amount);
   });
-  const my=bal[state.me.id]||0;
-  $('#myBal').innerHTML = my>=0 ? `<span class="pos">You're owed $${my.toFixed(2)}</span>` : `<span class="neg">You owe $${(-my).toFixed(2)}</span>`;
   $('#balList').innerHTML = state.people.filter(p=>Math.abs(bal[p.id])>0.005).sort((a,b)=>bal[b.id]-bal[a.id]).map(p=>{
     const v=bal[p.id];
     return `<div class="row"><span>${esc(p.full_name)}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'is owed':'owes'} $${Math.abs(v).toFixed(2)}</span></div>`;
@@ -295,9 +274,10 @@ $('#e_split').onchange = e => $('#e_customWrap').classList.toggle('hide', e.targ
 $('#e_save').onclick = async () => {
   const desc=$('#e_desc').value.trim(); const amt=parseFloat($('#e_amt').value);
   if(!desc||!(amt>=0)){ showErr('Add a description and amount.'); return; }
+  if(!$('#e_paid').value){ showErr('Choose who paid.'); return; }
   const split=$('#e_split').value;
   const { data:exp, error } = await supa.from('expenses').insert({
-    description:desc, amount:amt, paid_by:$('#e_paid').value, split_mode:split, settle:$('#e_settle').value, created_by:state.me.id
+    description:desc, amount:amt, paid_by:$('#e_paid').value, split_mode:split, settle:$('#e_settle').value
   }).select().single();
   if(error){ showErr(error.message); return; }
   if(split==='custom'){
@@ -317,9 +297,8 @@ function renderVault(items){
 
 // ---------- PERMISSIONS ----------
 function setupPermissions(){
-  const m=state.me; const isLead=m.is_organizer || (m.lead_area||[]).length>0;
-  $('#addExpenseCard').classList.toggle('hide', !isLead);
-  $('#e_paid').innerHTML = state.people.map(p=>`<option value="${p.id}" ${p.id===m.id?'selected':''}>${esc(p.full_name)}</option>`).join('');
+  $('#addExpenseCard').classList.remove('hide');
+  $('#e_paid').innerHTML = '<option value="" selected disabled>Who paid?</option>'+state.people.map(p=>`<option value="${p.id}">${esc(p.full_name)}</option>`).join('');
   $('#e_people').innerHTML = state.people.map(p=>`<label style="display:inline-flex;align-items:center;gap:6px;margin:4px 8px 0 0;font-size:13px"><input type="checkbox" value="${p.id}" style="width:auto"> ${esc(p.full_name.split(' ')[0])}</label>`).join('');
 }
 
